@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
      "lib/meta_search/builder.rb",
      "lib/meta_search/model_compatibility.rb",
      "lib/meta_search/search.rb",
+     "lib/meta_search/where.rb",
      "meta_search.gemspec",
      "test/helper.rb",
      "test/test_meta_search.rb"

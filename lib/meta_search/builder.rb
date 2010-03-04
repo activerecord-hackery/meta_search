@@ -1,63 +1,30 @@
 require 'meta_search/model_compatibility'
+require 'meta_search/where'
 
 module MetaSearch
   class Builder
     include ModelCompatibility
     
-    attr_reader :model, :attributes, :relation, :join_dependency
+    attr_reader :base, :attributes, :relation, :join_dependency
     delegate :all, :count, :to_sql, :to => :relation
-    
-    NUMBERS = [:integer, :float, :decimal]
-    STRINGS = [:string, :text, :binary]
-    DATES = [:date]
-    TIMES = [:datetime, :timestamp, :time]
-    BOOLEANS = [:boolean]
-    ALL_TYPES = NUMBERS + STRINGS + DATES + TIMES + BOOLEANS
-    
-    WHERES = [
-      ['equals', {:types => ALL_TYPES, :conditional => '=', :substitutions => '?',
-        :params => 'args.first', :name => "equals"}],
-      ['does_not_equal', {:types => ALL_TYPES, :conditional => '!=', :substitutions => '?',
-        :params => 'args.first', :name => "does_not_equal"}],
-      ['contains', {:types => STRINGS, :conditional => 'LIKE', :substitutions => '?',
-        :params => '"%#{args.first}%"', :name => 'contains'}],
-      ['does_not_contain', {:types => STRINGS, :conditional => 'NOT LIKE', :substitutions => '?',
-        :params => '"%#{args.first}%"', :name => 'does_not_contain'}],
-      ['starts_with', {:types => STRINGS, :conditional => 'LIKE', :substitutions => '?',
-        :params => '"#{args.first}%"', :name => 'starts_with'}],
-      ['does_not_start_with', {:types => STRINGS, :conditional => 'NOT LIKE', :substitutions => '?',
-        :params => '"%#{args.first}%"', :name => 'does_not_start_with'}],
-      ['ends_with', {:types => STRINGS, :conditional => 'LIKE', :substitutions => '?',
-        :params => '"%#{args.first}"', :name => 'ends_with'}],
-      ['does_not_end_with', {:types => STRINGS, :conditional => 'NOT LIKE', :substitutions => '?',
-        :params => '"%#{args.first}"', :name => 'does_not_end_with'}],
-      ['greater_than', {:types => (NUMBERS + DATES + TIMES), :conditional => '>', :substitutions => '?',
-        :params => 'args.first', :name => 'greater_than'}],
-      ['less_than', {:types => (NUMBERS + DATES + TIMES), :conditional => '<', :substitutions => '?',
-        :params => 'args.first', :name => 'less_than'}],
-      ['greater_than_or_equal_to', {:types => (NUMBERS + DATES + TIMES), :conditional => '>=', :substitutions => '?',
-        :params => 'args.first', :name => 'greater_than_or_equal_to'}],
-      ['less_than_or_equal_to', {:types => (NUMBERS + DATES + TIMES), :conditional => '<=', :substitutions => '?',
-        :params => 'args.first', :name => 'less_than_or_equal_to'}]
-    ]
 
-    def initialize(model, opts = {})
-      @model = model
-      @association_names = @model.reflect_on_all_associations.map {|a| a.name}
+    def initialize(base, opts = {})
+      @base = base
+      @association_names = @base.reflect_on_all_associations.map {|a| a.name}
       @associations = {}
-      @join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@model, [], nil)
+      @join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@base, [], nil)
       @opts = opts
       @attributes = {}
-      @relation = @model.scoped
+      @relation = @base.scoped
     end
     
     def column(attribute)
-      @model.columns_hash[attribute.to_s]
+      @base.columns_hash[attribute.to_s]
     end
     
     def association(association)
       if @association_names.include?(association.to_sym)
-        @associations[association.to_sym] ||= @model.reflect_on_association(association.to_sym)
+        @associations[association.to_sym] ||= @base.reflect_on_association(association.to_sym)
       end
     end
     
@@ -67,41 +34,53 @@ module MetaSearch
     
     def build(opts)
       opts ||= {}
-      @relation = @model.scoped
+      @relation = @base.scoped
       opts.stringify_keys!
       opts = collapse_multiparameter_options(opts)
       assign_attributes(opts)
       self
     end
     
-
-    def add_where_method(*args)
-      opts = args.last.is_a?(Hash) ? args.pop : {}
-      args = args.compact.flatten.map {|a| a.to_s }
-      raise ArgumentError, "Name parameter required" if args.blank?
-      opts[:name] = args.first
-      opts[:types] ||= ALL_TYPES
-      opts[:types].flatten!
-      opts[:conditional] ||= '='
-      opts[:substitutions] ||= '?'
-      opts[:params] ||= 'args.first'
-      WHERES.push [*args, opts]
+    private
+    
+    def cast_attributes(type, vals)
+      if (vals.is_a?(Array) ? 
+        # multiple arrays, an array of dates, or a regular (non-date-casted) array
+        (array_of_arrays?(vals) || array_of_dates?(vals) || !(DATES+TIMES).include?(type)) : nil)
+        vals.map! {|v| cast_attribute(type, v)}
+      else
+        cast_attribute(type, vals)
+      end
     end
     
-    private
+    def array_of_arrays?(vals)
+      vals.is_a?(Array) && vals.first.is_a?(Array)
+    end
+    
+    def array_of_dates?(vals)
+      vals.is_a?(Array) && vals.first.respond_to?(:to_time)
+    end
     
     def cast_attribute(type, val)
       case type
       when *STRINGS
-        String.new(val)
+        val.respond_to?(:to_s) ? val.to_s : String.new(val)
       when *DATES
-        y, m, d = *[val].flatten
-        m ||= 1
-        d ||= 1
-        Date.new(y,m,d) rescue nil
+        if val.respond_to?(:to_date)
+          val.to_date
+        else
+          y, m, d = *[val].flatten
+          m ||= 1
+          d ||= 1
+          Date.new(y,m,d) rescue nil
+        end
       when *TIMES
-        y, m, d, hh, mm, ss = *[val].flatten
-        Time.zone.local(y, m, d, hh, mm, ss) rescue nil
+        if val.respond_to?(:to_time)
+          val.to_time
+        else
+          y, m, d, hh, mm, ss = *[val].flatten
+          Time.zone.local(y, m, d, hh, mm, ss) rescue nil
+        end
       when *BOOLEANS
         ActiveRecord::ConnectionAdapters::Column.value_to_boolean(val)
       when :integer
@@ -119,10 +98,10 @@ module MetaSearch
       if match = matches_attribute_method(method_id)
         condition, attribute, association = match.captures.reverse
         build_method(association, attribute, condition)
-        self.send(method_id, *args)
+        self.send(preferred_method_name(method_id), *args)
       elsif match = matches_where_method(method_id)
         condition = match.captures.first
-        build_where_method(condition, get_where(condition))
+        build_where_method(condition, MetaSearch::Where.get(condition))
         self.send(method_id, *args)
       else
         super
@@ -144,7 +123,7 @@ module MetaSearch
         end
       
         define_method("#{association}_#{attribute}_#{type}=") do |val|
-          attributes["#{association}_#{attribute}_#{type}"] = cast_attribute(association_type_for(association, attribute), val)
+          attributes["#{association}_#{attribute}_#{type}"] = cast_attributes(association_type_for(association, attribute), val)
           unless attributes["#{association}_#{attribute}_#{type}"].blank?
             join = build_or_find_association(association)
             self.send("add_#{type}_where", join.aliased_table_name, attribute, attributes["#{association}_#{attribute}_#{type}"])
@@ -160,9 +139,9 @@ module MetaSearch
         end
       
         define_method("#{attribute}_#{type}=") do |val|
-          attributes["#{attribute}_#{type}"] = cast_attribute(type_for(attribute), val)
+          attributes["#{attribute}_#{type}"] = cast_attributes(type_for(attribute), val)
           unless attributes["#{attribute}_#{type}"].blank?
-            self.send("add_#{type}_where", @model.table_name, attribute, attributes["#{attribute}_#{type}"])
+            self.send("add_#{type}_where", @base.table_name, attribute, attributes["#{attribute}_#{type}"])
           end
         end
       end
@@ -171,12 +150,23 @@ module MetaSearch
     def build_where_method(condition, opts)
       metaclass.instance_eval do
         define_method("add_#{condition}_where") do |table, attribute, *args|
+          args.flatten! if looks_like_multiple_parameters(opts[:substitutions], args)
           @relation = @relation.where(
             "#{quote_table_name table}.#{quote_column_name attribute} " + 
-            "#{opts[:conditional]} #{opts[:substitutions]}", eval(opts[:params])
+            "#{opts[:conditional]} #{opts[:substitutions]}", *format_params(opts[:formatter], *args)
           )
         end
       end
+    end
+    
+    def looks_like_multiple_parameters(subs, args)
+      subs.count('?') > 1 && args.size == 1 && array_of_arrays?(args)
+    end
+    
+    def format_params(formatter, *params)
+      par = params.map {|p| formatter.call(p)}
+      puts par.inspect
+      par
     end
     
     def build_or_find_association(association)
@@ -193,9 +183,10 @@ module MetaSearch
     
     
     def matches_attribute_method(method_id)
-      method_name, where = preferred_method_name_and_where(method_id)
-      return nil unless method_name
-      match = method_name.match("^(.*)_(#{where[:name]})$")
+      method_name = preferred_method_name(method_id)
+      where = MetaSearch::Where.get(method_id)
+      return nil unless method_name && where
+      match = method_name.match("^(.*)_(#{where[:name]})=?$")
       attribute, condition = match.captures
       if where[:types].include?(type_for(attribute))
         return match
@@ -206,15 +197,13 @@ module MetaSearch
       nil
     end
     
-    def preferred_method_name_and_where(method_id)
-      method_name = method_id.to_s.sub(/=$/, '')
-      WHERES.each do |names|
-        opts = names.last
-        if name = names.detect {|n| method_name =~ /#{n}$/}
-          return [method_name.sub(/#{name}/, opts[:name]), opts]
-        end
+    def preferred_method_name(method_id)
+      method_name = method_id.to_s
+      return nil unless where = MetaSearch::Where.get(method_name)
+      where[:aliases].each do |a|
+        break if method_name.sub!(/#{a}(=?)$/, "#{where[:name]}\\1")
       end
-      nil
+      method_name
     end
     
     def matches_association(method_id, attribute, condition)
@@ -231,12 +220,8 @@ module MetaSearch
     def matches_where_method(method_id)
       if match = method_id.to_s.match(/^add_(.*)_where$/)
         condition = match.captures.first
-        get_where(condition) ? match : nil
+        MetaSearch::Where.get(condition) ? match : nil
       end
-    end
-    
-    def get_where(condition)
-      WHERES.detect {|w| w.include?(condition)}.to_a.last
     end
     
     def assign_attributes(opts)
@@ -289,35 +274,6 @@ module MetaSearch
     
     def quote_column_name(name)
       ActiveRecord::Base.connection.quote_column_name(name)
-    end
-    
-    def set_default_wheres
-      [
-        ['equals', {:types => ALL_TYPES, :conditional => '=', :substitutions => '?',
-          :params => 'args.first', :name => "equals"}],
-        ['does_not_equal', {:types => ALL_TYPES, :conditional => '!=', :substitutions => '?',
-          :params => 'args.first', :name => "does_not_equal"}],
-        ['contains', {:types => STRINGS, :conditional => 'LIKE', :substitutions => '?',
-          :params => '"%#{args.first}%"', :name => 'contains'}],
-        ['does_not_contain', {:types => STRINGS, :conditional => 'NOT LIKE', :substitutions => '?',
-          :params => '"%#{args.first}%"', :name => 'does_not_contain'}],
-        ['starts_with', {:types => STRINGS, :conditional => 'LIKE', :substitutions => '?',
-          :params => '"#{args.first}%"', :name => 'starts_with'}],
-        ['does_not_start_with', {:types => STRINGS, :conditional => 'NOT LIKE', :substitutions => '?',
-          :params => '"%#{args.first}%"', :name => 'does_not_start_with'}],
-        ['ends_with', {:types => STRINGS, :conditional => 'LIKE', :substitutions => '?',
-          :params => '"%#{args.first}"', :name => 'ends_with'}],
-        ['does_not_end_with', {:types => STRINGS, :conditional => 'NOT LIKE', :substitutions => '?',
-          :params => '"%#{args.first}"', :name => 'does_not_end_with'}],
-        ['greater_than', {:types => (NUMBERS + DATES + TIMES), :conditional => '>', :substitutions => '?',
-          :params => 'args.first', :name => 'greater_than'}],
-        ['less_than', {:types => (NUMBERS + DATES + TIMES), :conditional => '<', :substitutions => '?',
-          :params => 'args.first', :name => 'less_than'}],
-        ['greater_than_or_equal_to', {:types => (NUMBERS + DATES + TIMES), :conditional => '>=', :substitutions => '?',
-          :params => 'args.first', :name => 'greater_than_or_equal_to'}],
-        ['less_than_or_equal_to', {:types => (NUMBERS + DATES + TIMES), :conditional => '<=', :substitutions => '?',
-          :params => 'args.first', :name => 'less_than_or_equal_to'}]
-      ]
     end
   end
 end

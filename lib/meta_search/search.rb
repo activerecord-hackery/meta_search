@@ -9,6 +9,9 @@ module MetaSearch
         builder = MetaSearch::Builder.new(self)
         builder.build(opts)
       end
+      
+      def meta_search_where(*args)
+      end
     end
   end
 end
