@@ -1,6 +1,85 @@
+require 'meta_search/exceptions'
+
 module MetaSearch
+  # Wheres are how MetaSearch does its magic. Wheres have a name (and possible aliases) which are
+  # appended to your model and association attributes. When you instantiate a MetaSearch::Builder
+  # against a model (manually or by calling your model's +search+ method) the builder responds to
+  # methods named for your model's attributes and associations, suffixed by the name of the Where.
+  #
+  # These are the default Wheres, broken down by the types of ActiveRecord columns they can search
+  # against:
+  #
+  # === All data types
+  #
+  # * _equals_ (alias: _eq_) - Just as it sounds.
+  # * _does_not_equal_ (alias: _ne_) - The opposite of equals, oddly enough.
+  #
+  # === Strings
+  #
+  # * _contains_ (alias: _like_) - Substring match.
+  # * _does_not_contain_ (alias: _nlike_) - Negative substring match.
+  # * _starts_with_ (alias: _sw_) - Match strings beginning with the entered term.
+  # * _does_not_start_with_ (alias: _dnsw_) - The opposite of above.
+  # * _ends_with_ (alias: _ew_) - Match strings ending with the entered term.
+  # * _does_not_end_with_ (alias: _dnew_) - Negative of above.
+  #
+  # === Numbers, dates, and times
+  #
+  # * _greater_than_ (alias: _gt_) - Greater than.
+  # * _greater_than_or_equal_to_ (alias: _gte_) - Greater than or equal to.
+  # * _less_than_ (alias: _lt_) - Less than.
+  # * _less_than_or_equal_to_ (alias: _lte_) - Less than or equal to.
+  #
+  # So, given a model like this...
+  #
+  #   class Article < ActiveRecord::Base
+  #     belongs_to :author
+  #     has_many :comments
+  #     has_many :moderations, :through => :comments
+  #   end
+  #
+  # ...you might end up with attributes like <tt>title_contains</tt>,
+  # <tt>comments_title_starts_with</tt>, <tt>moderations_value_less_than</tt>,
+  # <tt>author_name_equals</tt>, and so on.
   class Where    
     class << self
+      # At application initialization, you can add additional custom Wheres to the mix.
+      # in your application's <tt>config/initializers/meta_search.rb</tt>, place lines
+      # like this:
+      #
+      #   MetaSearch::Where.add :between, :btw, {
+      #     :types =>  [:integer, :float, :decimal, :date, :datetime, :timestamp, :time],
+      #     :condition => 'BETWEEN',
+      #     :substitutions => '? AND ?',
+      #     :formatter => Proc.new {|param| param}
+      #   }
+      #
+      # The first options are all names for the where. Well, the first is a name, the rest
+      # are aliases, really. They will determine the suffix you will use to access your Where.
+      #
+      # <tt>types</tt> is an array of types the comparison is valid for. The where will not
+      # be available against columns that are not one of these types. Default is +ALL_TYPES+,
+      # Which is one of several MetaSearch constants available for type assignment (the others
+      # being +DATES+, +TIIMES+, +STRINGS+, and +NUMBERS+).
+      #
+      # <tt>condition</tt> is the condition placed between the column and the substitutions, such as
+      # BETWEEN, IN, or =. Default is =.
+      #
+      # <tt>substitutions</tt> is the text that comes next. It's normally going to have some
+      # question marks in it (for variable substitution) if it's going to be of much use. The
+      # default is ?. Keep in mind if you use more than one ? MetaSearch will require an array
+      # be passed to the attribute for substitution.
+      #
+      # <tt>formatter</tt> is the Proc that will do any formatting to the variables to be substituted.
+      # The default proc is <tt>{|param| param}</tt>, which doesn't really do anything. If you pass a
+      # string, it will be +eval+ed in the context of this Proc.
+      #
+      # For example, this is the definition of the "contains" Where:
+      #
+      # <tt>['contains', 'like', {:types => STRINGS, :condition => 'LIKE', :formatter => '"%#{param}%"'}]</tt>
+      #
+      # Be sure to single-quote the string, so that variables aren't interpolated until later. If in doubt,
+      # just use a Proc.
       def add(*args)
         opts = args.last.is_a?(Hash) ? args.pop : {}
         args = args.compact.flatten.map {|a| a.to_s }
@@ -8,7 +87,7 @@ module MetaSearch
         opts[:name] ||= args.first
         opts[:types] ||= ALL_TYPES
         opts[:types].flatten!
-        opts[:conditional] ||= '='
+        opts[:condition] ||= '='
         opts[:substitutions] ||= '?'
         opts[:formatter] ||= Proc.new {|param| param}
         if opts[:formatter].is_a?(String)
@@ -17,9 +96,16 @@ module MetaSearch
         end
         opts[:aliases] ||= args - [opts[:name]]
         @@wheres ||= {}
+        if @@wheres.has_key?(opts[:name])
+          raise ArgumentError, "\"#{opts[:name]}\" is not available for use as a where name."
+        end
         @@wheres[opts[:name]] = opts
         opts[:aliases].each do |a|
-          @@wheres[a] = opts[:name]
+          if @@wheres.has_key?(a)
+            opts[:aliases].delete(a)
+          else
+            @@wheres[a] = opts[:name]
+          end
         end
       end
     
@@ -32,6 +118,11 @@ module MetaSearch
         where = @@wheres[where_key]
         where = @@wheres[where] if where.is_a?(String)
         where
+      end
+      
+      def valid_substitutions?(method_id_or_condition, value)
+        where = get(method_id_or_condition)
+        where[:substitutions].count('?') == (value.is_a?(Array) ? value : Array[value]).select {|v| !v.blank?}.size
       end
     
       def initialize_wheres

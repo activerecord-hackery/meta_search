@@ -1,3 +1,5 @@
+require 'meta_search/exceptions'
+
 module MetaSearch
   module Utility
     private
@@ -49,7 +51,7 @@ module MetaSearch
       when :decimal
         val.blank? ? nil : ActiveRecord::ConnectionAdapters::Column.value_to_decimal(val)
       else
-        raise ArgumentError, "Unable to cast columns of type #{type}"
+        raise TypeCastError, "Unable to cast columns of type #{type}"
       end
     end
     

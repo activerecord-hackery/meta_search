@@ -8,31 +8,22 @@ module MetaSearch
 
   DEFAULT_WHERES = [
     ['equals', 'eq'],
-    ['does_not_equal', 'ne', {:types => ALL_TYPES, :conditional => '!='}],
-    ['contains', 'like', {:types => STRINGS, :conditional => 'LIKE', :formatter => '"%#{param}%"'}],
-    ['does_not_contain', 'nlike', {:types => STRINGS, :conditional => 'NOT LIKE', :formatter => '"%#{param}%"'}],
-    ['starts_with', 'sw', {:types => STRINGS, :conditional => 'LIKE', :formatter => '"#{param}%"'}],
-    ['does_not_start_with', 'dnsw', {:types => STRINGS, :conditional => 'NOT LIKE', :formatter => '"%#{param}%"'}],
-    ['ends_with', 'ew', {:types => STRINGS, :conditional => 'LIKE', :formatter => '"%#{param}"'}],
-    ['does_not_end_with', 'dnew', {:types => STRINGS, :conditional => 'NOT LIKE', :formatter => '"%#{param}"'}],
-    ['greater_than', 'gt', {:types => (NUMBERS + DATES + TIMES), :conditional => '>'}],
-    ['less_than', 'lt', {:types => (NUMBERS + DATES + TIMES), :conditional => '<'}],
-    ['greater_than_or_equal_to', 'gte', {:types => (NUMBERS + DATES + TIMES), :conditional => '>='}],
-    ['less_than_or_equal_to', 'lte', {:types => (NUMBERS + DATES + TIMES), :conditional => '<='}]
+    ['does_not_equal', 'ne', {:types => ALL_TYPES, :condition => '!='}],
+    ['contains', 'like', {:types => STRINGS, :condition => 'LIKE', :formatter => '"%#{param}%"'}],
+    ['does_not_contain', 'nlike', {:types => STRINGS, :condition => 'NOT LIKE', :formatter => '"%#{param}%"'}],
+    ['starts_with', 'sw', {:types => STRINGS, :condition => 'LIKE', :formatter => '"#{param}%"'}],
+    ['does_not_start_with', 'dnsw', {:types => STRINGS, :condition => 'NOT LIKE', :formatter => '"%#{param}%"'}],
+    ['ends_with', 'ew', {:types => STRINGS, :condition => 'LIKE', :formatter => '"%#{param}"'}],
+    ['does_not_end_with', 'dnew', {:types => STRINGS, :condition => 'NOT LIKE', :formatter => '"%#{param}"'}],
+    ['greater_than', 'gt', {:types => (NUMBERS + DATES + TIMES), :condition => '>'}],
+    ['less_than', 'lt', {:types => (NUMBERS + DATES + TIMES), :condition => '<'}],
+    ['greater_than_or_equal_to', 'gte', {:types => (NUMBERS + DATES + TIMES), :condition => '>='}],
+    ['less_than_or_equal_to', 'lte', {:types => (NUMBERS + DATES + TIMES), :condition => '<='}]
   ]
   
-  require 'active_record'
-  require 'meta_search/builder'
-  require 'meta_search/search'
-  
-  class << self
-    def add_search_to_active_record
-      return if ActiveRecord::Base.respond_to? :search
-      ActiveRecord::Base.send :include, Search
-    end
-  end
+  RELATION_METHODS = [:all, :count, :to_sql, :paginate, :find_each, :first, :last, :each]
 end
 
-if defined? Rails
-  MetaSearch.add_search_to_active_record
+if defined?(::Rails::Railtie)
+  require 'meta_search/railtie'
 end

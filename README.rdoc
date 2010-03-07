@@ -1,6 +1,72 @@
-= meta_search
+= MetaSearch
 
-This is still a work in progress. Please ignore, for now. :)
+Extensible searching for your form_for enjoyment.
+
+== Getting Started
+
+Add a line to your Gemfile:
+
+  gem "meta_search"
+
+In your controller:
+
+  def index
+    @search = Article.search(params[:search])
+    @articles = @search.all
+  end
+
+In your view:
+
+  <% form_for :search, @search, :html => {:method => :get} do |f| %>
+    <%= f.label :title_contains %>
+    <%= f.text_field :title_contains %><br />
+    <%= f.label :comments_created_on_greater_than, 'With comments after' %>
+    <%= f.datetime_select :comments_created_on_greater_than, :include_blank => true %><br />
+    <!-- etc... -->
+    <%= f.submit %>
+  <% end %>
+  
+The default Where types are listed at MetaSearch::Where.
+
+== Advanced usage
+
+=== Adding a new Where
+
+If none of the built-in search criteria work for you, you can add a new Where (or 5). To do so,
+create an initializer (<tt>/config/initializers/meta_search.rb</tt>, for instance):
+
+  MetaSearch::Where.add :between, :btw, {:conditional => 'BETWEEN', :substitutions => '? AND ?'}
+
+See MetaSearch::Where for info on the supported options.
+
+=== multiparameter_field
+
+The example Where above adds support for a "between" search, which requires an array with
+two parameters. These can be passed using Rails multiparameter attributes. To make life easier,
+MetaSearch adds a helper for this:
+
+  <%= f.multiparameter_field :moderations_value_between,
+      [{:field_type => :text_field}, {:field_type => :text_field}] %>
+
+<tt>multiparameter_field</tt> works pretty much like the other FormBuilder helpers, but this
+version lets you sandwich an array of fields between the attribute and the usual options hash.
+See MetaSearch::Helpers::FormBuilder for more info.
+
+=== Excluding attributes and associations
+
+If you'd like to prevent certain associations or attributes from being searchable, just
+merge the relevant options into your search:
+
+  @search = Article.search(
+    params[:search].merge(
+      :search_options => {
+        :exclude_associations => :comments,
+        :exclude_attributes => [:created_at, :updated_at]
+      }
+    )
+  )
+  
+Excluding certain attributes of an association is not (yet) supported.
 
 == Copyright
 

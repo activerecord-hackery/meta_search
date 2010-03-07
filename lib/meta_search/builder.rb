@@ -1,4 +1,5 @@
 require 'meta_search/model_compatibility'
+require 'meta_search/exceptions'
 require 'meta_search/where'
 require 'meta_search/utility'
 
@@ -8,20 +9,23 @@ module MetaSearch
     include Utility
     
     attr_reader :base, :attributes, :relation, :join_dependency
-    delegate :all, :count, :to_sql, :to => :relation
+    delegate *RELATION_METHODS, :to => :relation
 
     def initialize(base, opts = {})
       @base = base
-      @association_names = @base.reflect_on_all_associations.map {|a| a.name}
+      @opts = HashWithIndifferentAccess[:exclude_associations => [], :exclude_attributes => []].merge(opts)
+      @opts[:exclude_associations] = Array[@opts[:exclude_attributes]].flatten
+      @opts[:exclude_attributes] = Array[@opts[:exclude_attributes]].flatten.map {|a| a.to_s}
+      
+      @association_names = @base.reflect_on_all_associations.map {|a| a.name} - @opts[:exclude_associations]
       @associations = {}
       @join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@base, [], nil)
-      @opts = opts
       @attributes = {}
       @relation = @base.scoped
     end
     
     def column(attribute)
-      @base.columns_hash[attribute.to_s]
+      @base.columns_hash[attribute.to_s] unless @opts[:exclude_attributes].include?(attribute.to_s)
     end
     
     def association(association)
@@ -46,13 +50,17 @@ module MetaSearch
     private
     
     def method_missing(method_id, *args, &block)
-      if match = matches_attribute_method(method_id)
+      if match = method_id.to_s.match(/^(.*)\(([0-9]+).*\)$/)
+        method_name, index = match.captures
+        vals = self.send(method_name)
+        vals.is_a?(Array) ? vals[index.to_i - 1] : nil
+      elsif match = matches_attribute_method(method_id)
         condition, attribute, association = match.captures.reverse
         build_method(association, attribute, condition)
         self.send(preferred_method_name(method_id), *args)
       elsif match = matches_where_method(method_id)
         condition = match.captures.first
-        build_where_method(condition, MetaSearch::Where.get(condition))
+        build_where_method(condition, Where.get(condition))
         self.send(method_id, *args)
       else
         super
@@ -75,7 +83,7 @@ module MetaSearch
       
         define_method("#{association}_#{attribute}_#{type}=") do |val|
           attributes["#{association}_#{attribute}_#{type}"] = cast_attributes(association_type_for(association, attribute), val)
-          unless attributes["#{association}_#{attribute}_#{type}"].blank?
+          if Where.valid_substitutions?(type, attributes["#{association}_#{attribute}_#{type}"])
             join = build_or_find_association(association)
             self.send("add_#{type}_where", join.aliased_table_name, attribute, attributes["#{association}_#{attribute}_#{type}"])
           end
@@ -91,7 +99,7 @@ module MetaSearch
       
         define_method("#{attribute}_#{type}=") do |val|
           attributes["#{attribute}_#{type}"] = cast_attributes(type_for(attribute), val)
-          unless attributes["#{attribute}_#{type}"].blank?
+          if Where.valid_substitutions?(type, attributes["#{attribute}_#{type}"])
             self.send("add_#{type}_where", @base.table_name, attribute, attributes["#{attribute}_#{type}"])
           end
         end
@@ -104,7 +112,7 @@ module MetaSearch
           args.flatten! if looks_like_multiple_parameters(opts[:substitutions], args)
           @relation = @relation.where(
             "#{quote_table_name table}.#{quote_column_name attribute} " + 
-            "#{opts[:conditional]} #{opts[:substitutions]}", *format_params(opts[:formatter], *args)
+            "#{opts[:condition]} #{opts[:substitutions]}", *format_params(opts[:formatter], *args)
           )
         end
       end
@@ -112,8 +120,6 @@ module MetaSearch
     
     def format_params(formatter, *params)
       par = params.map {|p| formatter.call(p)}
-      puts par.inspect
-      par
     end
     
     def build_or_find_association(association)
@@ -130,7 +136,7 @@ module MetaSearch
     
     def matches_attribute_method(method_id)
       method_name = preferred_method_name(method_id)
-      where = MetaSearch::Where.get(method_id)
+      where = Where.get(method_id)
       return nil unless method_name && where
       match = method_name.match("^(.*)_(#{where[:name]})=?$")
       attribute, condition = match.captures
@@ -145,7 +151,7 @@ module MetaSearch
     
     def preferred_method_name(method_id)
       method_name = method_id.to_s
-      return nil unless where = MetaSearch::Where.get(method_name)
+      return nil unless where = Where.get(method_name)
       where[:aliases].each do |a|
         break if method_name.sub!(/#{a}(=?)$/, "#{where[:name]}\\1")
       end
@@ -166,7 +172,7 @@ module MetaSearch
     def matches_where_method(method_id)
       if match = method_id.to_s.match(/^add_(.*)_where$/)
         condition = match.captures.first
-        MetaSearch::Where.get(condition) ? match : nil
+        Where.get(condition) ? match : nil
       end
     end
     
