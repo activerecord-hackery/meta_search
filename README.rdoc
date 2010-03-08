@@ -20,8 +20,8 @@ In your view:
   <% form_for :search, @search, :html => {:method => :get} do |f| %>
     <%= f.label :title_contains %>
     <%= f.text_field :title_contains %><br />
-    <%= f.label :comments_created_on_greater_than, 'With comments after' %>
-    <%= f.datetime_select :comments_created_on_greater_than, :include_blank => true %><br />
+    <%= f.label :comments_created_at_greater_than, 'With comments after' %>
+    <%= f.datetime_select :comments_created_at_greater_than, :include_blank => true %><br />
     <!-- etc... -->
     <%= f.submit %>
   <% end %>
@@ -33,9 +33,10 @@ The default Where types are listed at MetaSearch::Where. Options for the search 
 === Adding a new Where
 
 If none of the built-in search criteria work for you, you can add a new Where (or 5). To do so,
-create an initializer (<tt>/config/initializers/meta_search.rb</tt>, for instance):
+create an initializer (<tt>/config/initializers/meta_search.rb</tt>, for instance) and add lines
+like:
 
-  MetaSearch::Where.add :between, :btw, {:conditional => 'BETWEEN', :substitutions => '? AND ?'}
+  MetaSearch::Where.add :between, :btw, {:condition => 'BETWEEN', :substitutions => '? AND ?'}
 
 See MetaSearch::Where for info on the supported options.
 
@@ -48,8 +49,8 @@ MetaSearch adds a helper for this:
   <%= f.multiparameter_field :moderations_value_between,
       {:field_type => :text_field}, {:field_type => :text_field}, :size => 5 %>
 
-<tt>multiparameter_field</tt> works pretty much like the other FormBuilder helpers, but this
-version lets you sandwich an array of fields between the attribute and the usual options hash.
+<tt>multiparameter_field</tt> works pretty much like the other FormBuilder helpers, but it
+lets you sandwich an array of fields between the attribute and the usual options hash.
 See MetaSearch::Helpers::FormBuilder for more info.
 
 === Excluding attributes and associations
