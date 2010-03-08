@@ -50,8 +50,8 @@ MetaSearch adds a helper for this:
       {:field_type => :text_field}, {:field_type => :text_field}, :size => 5 %>
 
 <tt>multiparameter_field</tt> works pretty much like the other FormBuilder helpers, but it
-lets you sandwich an array of fields between the attribute and the usual options hash.
-See MetaSearch::Helpers::FormBuilder for more info.
+lets you sandwich a list of fields, each in hash format, between the attribute and the usual
+options hash. See MetaSearch::Helpers::FormBuilder for more info.
 
 === Excluding attributes and associations
 
