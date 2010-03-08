@@ -1,7 +1,7 @@
 require 'meta_search/exceptions'
 
 module MetaSearch
-  module Utility
+  module Utility #:nodoc:
     private
     
     def array_of_arrays?(vals)

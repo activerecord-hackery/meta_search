@@ -41,7 +41,27 @@ module MetaSearch
   # ...you might end up with attributes like <tt>title_contains</tt>,
   # <tt>comments_title_starts_with</tt>, <tt>moderations_value_less_than</tt>,
   # <tt>author_name_equals</tt>, and so on.
-  class Where    
+  class Where
+    attr_reader :name, :aliases, :types, :condition, :substitutions, :formatter
+    def initialize(where)
+      if [String,Symbol].include?(where.class)
+        where = Where.get(where) or raise ArgumentError("A where could not be instantiated for the argument #{where}")
+      end
+      @name = where[:name]
+      @aliases = where[:aliases]
+      @types = where[:types]
+      @condition = where[:condition]
+      @substitutions = where[:substitutions]
+      @formatter = where[:formatter]
+    end
+    
+    # Checks that the given +value+ is valid to use for the substitutions of this where.
+    # Requires that there are the same number of parameters as substitutions, and none of'
+    # them is blank.
+    def valid_substitutions?(value)
+      self.substitutions.count('?') == (value.is_a?(Array) ? value : Array[value]).select {|v| !v.blank?}.size
+    end
+    
     class << self
       # At application initialization, you can add additional custom Wheres to the mix.
       # in your application's <tt>config/initializers/meta_search.rb</tt>, place lines
@@ -86,7 +106,7 @@ module MetaSearch
         raise ArgumentError, "Name parameter required" if args.blank?
         opts[:name] ||= args.first
         opts[:types] ||= ALL_TYPES
-        opts[:types].flatten!
+        opts[:types] = [opts[:types]].flatten
         opts[:condition] ||= '='
         opts[:substitutions] ||= '?'
         opts[:formatter] ||= Proc.new {|param| param}
@@ -94,7 +114,7 @@ module MetaSearch
           formatter = opts[:formatter]
           opts[:formatter] = Proc.new {|param| eval formatter}
         end
-        opts[:aliases] ||= args - [opts[:name]]
+        opts[:aliases] ||= [args - [opts[:name]]].flatten
         @@wheres ||= {}
         if @@wheres.has_key?(opts[:name])
           raise ArgumentError, "\"#{opts[:name]}\" is not available for use as a where name."
@@ -108,11 +128,13 @@ module MetaSearch
           end
         end
       end
-    
+      
+      # Returns the complete array of Wheres
       def all
         @@wheres
       end
-    
+      
+      # Get the where matching a method or condition.
       def get(method_id_or_condition)
         return nil unless where_key = @@wheres.keys.detect {|n| method_id_or_condition.to_s.match(/#{n}=?$/)}
         where = @@wheres[where_key]
@@ -120,12 +142,9 @@ module MetaSearch
         where
       end
       
-      def valid_substitutions?(method_id_or_condition, value)
-        where = get(method_id_or_condition)
-        where[:substitutions].count('?') == (value.is_a?(Array) ? value : Array[value]).select {|v| !v.blank?}.size
-      end
-    
+      # Set the wheres to their default values, removing any customized settings.
       def initialize_wheres
+        @@wheres = {}
         DEFAULT_WHERES.each do |where|
           add(*where)
         end

@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{meta_search}
-  s.version = "0.0.11"
+  s.version = "0.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-03-06}
+  s.date = %q{2010-03-07}
   s.description = %q{Adds a search method to your ActiveRecord models which returns an object to be used in form_for while constructing a search. Works with Rails 3 only.}
   s.email = %q{ernie@metautonomo.us}
   s.extra_rdoc_files = [

@@ -6,7 +6,7 @@ module MetaSearch
       # Prepares the search to run against your model. Returns an instance of
       # MetaSearch::Builder, which behaves pretty much like an ActiveRecord::Relation,
       # in that it doesn't actually query the database until you do something that
-      # requires it to.
+      # requires it to do so.
       #
       # Options:
       #
@@ -16,6 +16,7 @@ module MetaSearch
       #
       # _NOTE_: Attributes of associations can't be excluded. It's all or nothing, for now.
       def search(opts = {})
+        opts ||= {} # to catch nil params
         search_options = opts.delete(:search_options) || {}
         builder = MetaSearch::Builder.new(self, search_options)
         builder.build(opts)

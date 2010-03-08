@@ -21,7 +21,7 @@ module MetaSearch
     ['less_than_or_equal_to', 'lte', {:types => (NUMBERS + DATES + TIMES), :condition => '<='}]
   ]
   
-  RELATION_METHODS = [:all, :count, :to_sql, :paginate, :find_each, :first, :last, :each]
+  RELATION_METHODS = [:joins, :includes, :all, :count, :to_sql, :paginate, :find_each, :first, :last, :each]
 end
 
 if defined?(::Rails::Railtie)

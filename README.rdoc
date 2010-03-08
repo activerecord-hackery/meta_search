@@ -26,7 +26,7 @@ In your view:
     <%= f.submit %>
   <% end %>
   
-The default Where types are listed at MetaSearch::Where.
+The default Where types are listed at MetaSearch::Where. Options for the search method are documented at MetaSearch::Searches::Base.
 
 == Advanced usage
 
@@ -46,7 +46,7 @@ two parameters. These can be passed using Rails multiparameter attributes. To ma
 MetaSearch adds a helper for this:
 
   <%= f.multiparameter_field :moderations_value_between,
-      [{:field_type => :text_field}, {:field_type => :text_field}] %>
+      {:field_type => :text_field}, {:field_type => :text_field}, :size => 5 %>
 
 <tt>multiparameter_field</tt> works pretty much like the other FormBuilder helpers, but this
 version lets you sandwich an array of fields between the attribute and the usual options hash.
