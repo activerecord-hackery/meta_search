@@ -152,7 +152,9 @@ module MetaSearch
       
       # Get the where matching a method or condition.
       def get(method_id_or_condition)
-        return nil unless where_key = @@wheres.keys.detect {|n| method_id_or_condition.to_s.match(/#{n}=?$/)}
+        return nil unless where_key = @@wheres.keys.
+          sort {|a,b| b.length <=> a.length}.
+          detect {|n| method_id_or_condition.to_s.match(/#{n}=?$/)}
         where = @@wheres[where_key]
         where = @@wheres[where] if where.is_a?(String)
         where
