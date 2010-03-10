@@ -13,6 +13,8 @@ module MetaSearch
   #
   # * _equals_ (alias: _eq_) - Just as it sounds.
   # * _does_not_equal_ (alias: _ne_) - The opposite of equals, oddly enough.
+  # * _in_ - Takes an array, matches on equality with any of the items in the array.
+  # * _not_in_ (alias: _ni_) - Like above, but negated.
   #
   # === Strings
   #
@@ -53,13 +55,19 @@ module MetaSearch
       @condition = where[:condition]
       @substitutions = where[:substitutions]
       @formatter = where[:formatter]
+      @keep_arrays = where[:keep_arrays]
+    end
+    
+    def keep_arrays?
+      @keep_arrays
     end
     
     # Checks that the given +value+ is valid to use for the substitutions of this where.
     # Requires that there are the same number of parameters as substitutions, and none of'
     # them is blank.
-    def valid_substitutions?(value)
-      self.substitutions.count('?') == (value.is_a?(Array) ? value : Array[value]).select {|v| !v.blank?}.size
+    def valid_substitutions?(*values)
+      values.flatten! unless values.size > 1 || self.keep_arrays?
+      self.substitutions.count('?') == values.select {|v| !v.blank?}.size
     end
     
     class << self
@@ -90,13 +98,20 @@ module MetaSearch
       # default is ?. Keep in mind if you use more than one ? MetaSearch will require an array
       # be passed to the attribute for substitution.
       #
+      # <tt>keep_arrays</tt> tells MetaSearch that if any arrays are received as parameters, they
+      # should be used as-is in the substitution, rather than flattened and passed as a list.
+      # For example, this is the definition of the "in" Where:
+      #
+      #   ['in', {:types => ALL_TYPES, :condition => 'IN', :substitutions => '(?)',
+      #    :keep_arrays => true}]
+      #
       # <tt>formatter</tt> is the Proc that will do any formatting to the variables to be substituted.
       # The default proc is <tt>{|param| param}</tt>, which doesn't really do anything. If you pass a
       # string, it will be +eval+ed in the context of this Proc.
       #
       # For example, this is the definition of the "contains" Where:
       #
-      # <tt>['contains', 'like', {:types => STRINGS, :condition => 'LIKE', :formatter => '"%#{param}%"'}]</tt>
+      #   ['contains', 'like', {:types => STRINGS, :condition => 'LIKE', :formatter => '"%#{param}%"'}]
       #
       # Be sure to single-quote the string, so that variables aren't interpolated until later. If in doubt,
       # just use a Proc.
@@ -109,6 +124,7 @@ module MetaSearch
         opts[:types] = [opts[:types]].flatten
         opts[:condition] ||= '='
         opts[:substitutions] ||= '?'
+        opts[:keep_arrays] ||= false
         opts[:formatter] ||= Proc.new {|param| param}
         if opts[:formatter].is_a?(String)
           formatter = opts[:formatter]

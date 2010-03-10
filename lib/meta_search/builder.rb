@@ -143,7 +143,7 @@ module MetaSearch
     def build_where_method(condition, where)
       metaclass.instance_eval do
         define_method("add_#{condition}_where") do |table, attribute, *args|
-          args.flatten! if looks_like_multiple_parameters(where.substitutions, args)
+          args.flatten! unless where.keep_arrays?
           @relation = @relation.where(
             "#{quote_table_name table}.#{quote_column_name attribute} " + 
             "#{where.condition} #{where.substitutions}", *format_params(where.formatter, *args)

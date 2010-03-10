@@ -18,7 +18,9 @@ module MetaSearch
     ['greater_than', 'gt', {:types => (NUMBERS + DATES + TIMES), :condition => '>'}],
     ['less_than', 'lt', {:types => (NUMBERS + DATES + TIMES), :condition => '<'}],
     ['greater_than_or_equal_to', 'gte', {:types => (NUMBERS + DATES + TIMES), :condition => '>='}],
-    ['less_than_or_equal_to', 'lte', {:types => (NUMBERS + DATES + TIMES), :condition => '<='}]
+    ['less_than_or_equal_to', 'lte', {:types => (NUMBERS + DATES + TIMES), :condition => '<='}],
+    ['in', {:types => ALL_TYPES, :condition => 'IN', :substitutions => '(?)', :keep_arrays => true}],
+    ['not_in', 'ni', {:types => ALL_TYPES, :condition => 'NOT IN', :substitutions => '(?)', :keep_arrays => true}]
   ]
   
   RELATION_METHODS = [:joins, :includes, :all, :count, :to_sql, :paginate, :find_each, :first, :last, :each]

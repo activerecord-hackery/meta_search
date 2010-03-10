@@ -53,6 +53,28 @@ MetaSearch adds a helper for this:
 lets you sandwich a list of fields, each in hash format, between the attribute and the usual
 options hash. See MetaSearch::Helpers::FormBuilder for more info.
 
+=== check_boxes and collection_check_boxes
+
+If you need to get an array into your where, and you don't care about parameter order,
+you might choose to use a select or collection_select with multiple selection enabled,
+but everyone hates multiple selection boxes. MetaSearch adds a couple of additional
+helpers, +check_boxes+ and +collection_check_boxes+ to handle multiple selections in a
+more visually appealing manner. It can be called with or without a block, so something
+like this is possible:
+
+  <table>
+    <th colspan="2">How many heads?</th>
+    <% f.check_boxes :number_of_heads_in,
+       [['One', 1], ['Two', 2], ['Three', 3]], :class => 'checkboxy' do |c| %>
+       <tr>
+         <td><%= c[:check_box] %></td>
+         <td><%= c[:label] %></td>
+       </tr>
+    <% end %>
+  </table>
+
+Again, full documentation is in MetaSearch::Helpers::FormBuilder.
+
 === Excluding attributes and associations
 
 If you'd like to prevent certain associations or attributes from being searchable, just

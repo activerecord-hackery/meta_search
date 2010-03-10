@@ -13,9 +13,10 @@ module MetaSearch
     end
     
     def cast_attributes(type, vals)
-      if (vals.is_a?(Array) ? 
-        # multiple arrays, an array of dates, or a regular (non-date-casted) array
-        (array_of_arrays?(vals) || array_of_dates?(vals) || !(DATES+TIMES).include?(type)) : nil)
+      if array_of_arrays?(vals)
+        vals.map! {|v| cast_attributes(type, v)}
+      # Need to make sure not to kill multiparam dates/times
+      elsif vals.is_a?(Array) && (array_of_dates?(vals) || !(DATES+TIMES).include?(type))
         vals.map! {|v| cast_attribute(type, v)}
       else
         cast_attribute(type, vals)
@@ -71,10 +72,6 @@ module MetaSearch
         end
       end
       opts
-    end
-    
-    def looks_like_multiple_parameters(subs, args)
-      subs.count('?') > 1 && args.size == 1 && array_of_arrays?(args)
     end
     
     def quote_table_name(name)
