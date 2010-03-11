@@ -1,0 +1,55 @@
+peter:
+  id        : 1
+  company_id: 1
+  name      : Peter Gibbons
+  salary    : 100000
+  slacker   : true
+
+michael:
+  id        : 2
+  company_id: 1
+  name      : Michael Bolton
+  salary    : 70000
+  slacker   : false
+
+samir:
+  id        : 3
+  company_id: 1
+  name      : Samir Nagheenanajar
+  salary    : 65000
+  slacker   : false
+
+herb:
+  id        : 4
+  company_id: 2
+  name      : Herb Myers
+  salary    : 50000
+  slacker   : false
+
+dude:
+  id        : 5
+  company_id: 2
+  name      : Some Dude
+  salary    : 84000
+  slacker   : true
+
+ernie:
+  id        : 6
+  company_id: 3
+  name      : Ernie Miller
+  salary    : 45000
+  slacker   : true
+
+someone:
+  id        : 7
+  company_id: 3
+  name      : Someone Else
+  salary    : 70000
+  slacker   : true
+
+another:
+  id        : 8
+  company_id: 3
+  name      : Another Guy
+  salary    : 80000
+  slacker   : false

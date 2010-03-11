@@ -1,0 +1,25 @@
+<% 1.upto(3) do |d| %>
+y2k_<%= d %>:
+  developer_id: <%= d %>
+  project_id  : 1
+<% end %>
+
+virus:
+  developer_id: 2
+  project_id  : 2
+  
+<% 1.upto(8) do |d| %>
+awesome_<%= d %>:
+  developer_id: <%= d %>
+  project_id  : 3
+<% end %>
+
+metasearch:
+  developer_id: 6
+  project_id  : 4
+
+<% 4.upto(8) do |d| %>
+another_<%= d %>:
+  developer_id: <%= d %>
+  project_id  : 5
+<% end %>

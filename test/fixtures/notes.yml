@@ -1,0 +1,79 @@
+peter:
+  notable_type: Developer
+  notable_id  : 1
+  note        : A straight shooter with upper management written all over him.
+  
+michael:
+  notable_type: Developer
+  notable_id  : 2
+  note        : Doesn't like the singer of the same name. The nerve!
+
+samir:
+  notable_type: Developer
+  notable_id  : 3
+  note        : Naga.... Naga..... Not gonna work here anymore anyway.
+
+herb:
+  notable_type: Developer
+  notable_id  : 4
+  note        : Will show you what he's doing.
+
+dude:
+  notable_type: Developer
+  notable_id  : 5
+  note        : Nothing of note.
+
+ernie:
+  notable_type: Developer
+  notable_id  : 6
+  note        : Complete slacker. Should probably be fired.
+
+someone:
+  notable_type: Developer
+  notable_id  : 7
+  note        : Just another developer.
+
+another:
+  notable_type: Developer
+  notable_id  : 8
+  note        : Placing a note in this guy's file for insubordination.
+
+initech:
+  notable_type: Company
+  notable_id  : 1
+  note        : Innovation + Technology!
+
+aos:
+  notable_type: Company
+  notable_id  : 2
+  note        : Advanced solutions of an optical nature.
+
+mission_data:
+  notable_type: Company
+  notable_id  : 3
+  note        : Best design + development shop in the 'ville.
+
+y2k:
+  notable_type: Project
+  notable_id  : 1
+  note        : It may have already passed but that's no excuse to be unprepared!
+
+virus:
+  notable_type: Project
+  notable_id  : 2
+  note        : It could bring the company to its knees.
+
+awesome:
+  notable_type: Project
+  notable_id  : 3
+  note        : This note is AWESOME!!!
+
+metasearch:
+  notable_type: Project
+  notable_id  : 4
+  note        : A complete waste of the developer's time.
+
+another:
+  notable_type: Project
+  notable_id  : 5
+  note        : This is another project note.
