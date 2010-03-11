@@ -38,7 +38,7 @@ module MetaSearch
     def initialize(base, opts = {})
       @base = base
       @opts = HashWithIndifferentAccess[:exclude_associations => [], :exclude_attributes => []].merge(opts)
-      @opts[:exclude_associations] = [@opts[:exclude_attributes]].flatten
+      @opts[:exclude_associations] = [@opts[:exclude_associations]].flatten
       @opts[:exclude_attributes] = [@opts[:exclude_attributes]].flatten.map {|a| a.to_s}
       
       @association_names = @base.reflect_on_all_associations.map {|a| a.name} - @opts[:exclude_associations]

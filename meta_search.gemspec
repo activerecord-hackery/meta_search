@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{meta_search}
-  s.version = "0.2.1"
+  s.version = "0.2.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-03-10}
+  s.date = %q{2010-03-11}
   s.description = %q{Adds a search method to your ActiveRecord models which returns an object to be used in form_for while constructing a search. Works with Rails 3 only.}
   s.email = %q{ernie@metautonomo.us}
   s.extra_rdoc_files = [
@@ -34,8 +34,20 @@ Gem::Specification.new do |s|
      "lib/meta_search/utility.rb",
      "lib/meta_search/where.rb",
      "meta_search.gemspec",
+     "test/fixtures/companies.yml",
+     "test/fixtures/company.rb",
+     "test/fixtures/data_type.rb",
+     "test/fixtures/data_types.yml",
+     "test/fixtures/developer.rb",
+     "test/fixtures/developers.yml",
+     "test/fixtures/developers_projects.yml",
+     "test/fixtures/note.rb",
+     "test/fixtures/notes.yml",
+     "test/fixtures/project.rb",
+     "test/fixtures/projects.yml",
+     "test/fixtures/schema.rb",
      "test/helper.rb",
-     "test/test_meta_search.rb"
+     "test/test_search.rb"
   ]
   s.homepage = %q{http://metautonomo.us}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -43,8 +55,14 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.6}
   s.summary = %q{ActiveRecord 3 object-based searching.}
   s.test_files = [
-    "test/helper.rb",
-     "test/test_meta_search.rb"
+    "test/fixtures/company.rb",
+     "test/fixtures/data_type.rb",
+     "test/fixtures/developer.rb",
+     "test/fixtures/note.rb",
+     "test/fixtures/project.rb",
+     "test/fixtures/schema.rb",
+     "test/helper.rb",
+     "test/test_search.rb"
   ]
 
   if s.respond_to? :specification_version then
