@@ -101,7 +101,7 @@ class TestSearch < Test::Unit::TestCase
       end
     end
     
-    context "where developer note imdicates he will crack yo skull" do
+    context "where developer note indicates he will crack yo skull" do
       setup do
         @s.developer_notes_note_equals = "Will show you what he's doing."
       end

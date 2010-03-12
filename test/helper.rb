@@ -7,6 +7,8 @@ require 'action_view'
 
 FIXTURES_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
+Time.zone = 'Eastern Time (US & Canada)'
+
 ActiveRecord::Base.establish_connection(
   :adapter => 'sqlite3',
   :database => ':memory:'

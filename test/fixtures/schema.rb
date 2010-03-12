@@ -2,6 +2,8 @@ ActiveRecord::Schema.define do
 
   create_table "companies", :force => true do |t|
     t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
   
   create_table "developers", :force => true do |t|
@@ -40,8 +42,6 @@ ActiveRecord::Schema.define do
     t.date     "dat"
     t.binary   "bin"
     t.boolean  "bln"
-    t.datetime "created_at"
-    t.datetime "updated_at"
   end
 
 end
