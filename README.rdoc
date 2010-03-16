@@ -77,19 +77,24 @@ Again, full documentation is in MetaSearch::Helpers::FormBuilder.
 
 === Excluding attributes and associations
 
-If you'd like to prevent certain associations or attributes from being searchable, just
-merge the relevant options into your search:
+If you'd like to prevent certain associations or attributes from being searchable, you can control
+this inside your models:
 
-  @search = Article.search(
-    params[:search].merge(
-      :search_options => {
-        :exclude_associations => :comments,
-        :exclude_attributes => [:created_at, :updated_at]
-      }
-    )
-  )
-  
-Excluding certain attributes of an association is not (yet) supported.
+  class Article < ActiveRecord::Base
+    metasearch_exclude_attr :some_private_data, :another_private_column
+    metasearch_exclude_assoc :an_association_that_should_not_be_searched, :and_another
+  end
+
+You get the idea. Excluded attributes on a model will be honored across associations, so
+if an Article <tt>has_many :comments</tt> and the Comment model looks something like this:
+
+  Comment < ActiveRecord::Base
+    validates_presence_of :user_id, :body
+    metasearch_exclude_attr :user_id
+  end
+
+Then your call to <tt>Article.search</tt> will allow <tt>:comments_body_contains</tt>
+but not <tt>:comments_user_id_equals</tt> to be passed.
 
 == Copyright
 

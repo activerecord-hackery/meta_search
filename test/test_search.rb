@@ -14,36 +14,34 @@ class TestSearch < Test::Unit::TestCase
     should "have a column named name" do
       assert @s.column(:name)
     end
+      
+    should "exclude the column named updated_at" do
+      assert_nil @s.column(:updated_at)
+    end
     
-    context "excluding the developer association" do
-      setup do
-        @s = Company.search(:search_options => {:exclude_associations => :developers})
-      end
-      
-      should "not have an association named developers" do
-        assert_nil @s.association(:developers)
-      end
-      
-      should "raise an error if we try to search on developers" do
-        assert_raise NoMethodError do
-          @s.developers_name_eq = 'Blah'
-        end
+    should "raise an error if we try to search on updated_at" do
+      assert_raise NoMethodError do
+        @s.updated_at_eq = [2009, 1, 1]
       end
     end
     
-    context "excluding the name attribute" do
-      setup do
-        @s = Company.search(:search_options => {:exclude_attributes => :name})
+    should "exclude the association named notes" do
+      assert_nil @s.association(:notes)
+    end
+    
+    should "raise an error if we try to search on notes" do
+      assert_raise NoMethodError do
+        @s.notes_note_eq = 'Blah'
       end
-      
-      should "not have a column named name" do
-        assert_nil @s.column(:name)
-      end
-      
-      should "raise an error if we try to search on name" do
-        assert_raise NoMethodError do
-          @s.name_eq = 'Blah'
-        end
+    end
+    
+    should "honor its associations' excluded attributes" do
+      assert_nil @s.association_column(:data_types, :str)
+    end
+    
+    should "raise an error if we try to search data_types.str" do
+      assert_raise NoMethodError do
+        @s.data_types_str_eq = 'Blah'
       end
     end
     

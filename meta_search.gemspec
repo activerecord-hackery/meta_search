@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-03-11}
+  s.date = %q{2010-03-16}
   s.description = %q{Adds a search method to your ActiveRecord models which returns an object to be used in form_for while constructing a search. Works with Rails 3 only.}
   s.email = %q{ernie@metautonomo.us}
   s.extra_rdoc_files = [
@@ -47,7 +47,8 @@ Gem::Specification.new do |s|
      "test/fixtures/projects.yml",
      "test/fixtures/schema.rb",
      "test/helper.rb",
-     "test/test_search.rb"
+     "test/test_search.rb",
+     "test/test_view_helpers.rb"
   ]
   s.homepage = %q{http://metautonomo.us}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -62,7 +63,8 @@ Gem::Specification.new do |s|
      "test/fixtures/project.rb",
      "test/fixtures/schema.rb",
      "test/helper.rb",
-     "test/test_search.rb"
+     "test/test_search.rb",
+     "test/test_view_helpers.rb"
   ]
 
   if s.respond_to? :specification_version then

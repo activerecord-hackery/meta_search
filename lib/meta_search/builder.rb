@@ -13,7 +13,7 @@ module MetaSearch
   # === Attributes
   #
   # * +base+ - The base model that Builder wraps.
-  # * +attributes+ - Attributes that have been assigned (search terms)
+  # * +search_attributes+ - Attributes that have been assigned (search terms)
   # * +relation+ - The ActiveRecord::Relation representing the current search.
   # * +join_dependency+ - The JoinDependency object representing current association join
   #   dependencies. It's used internally to avoid joining association tables more than
@@ -22,49 +22,56 @@ module MetaSearch
     include ModelCompatibility
     include Utility
     
-    attr_reader :base, :attributes, :relation, :join_dependency
+    attr_reader :base, :search_attributes, :relation, :join_dependency
     delegate *RELATION_METHODS, :to => :relation
 
     # Initialize a new Builder. Requires a base model to wrap, and supports a couple of options
     # for how it will expose this model and its associations to your controllers/views.
-    #
-    # Options:
-    #
-    # * <tt>:exclude_associations</tt> - An array of association names to exclude from search.
-    # * <tt>:exclude_attributes</tt> - An array of attributes (of the model you're searching)
-    #   to exclude from searching.
-    #
-    # _NOTE_: Attributes of associations can't be excluded. It's all or nothing, for now.
     def initialize(base, opts = {})
       @base = base
-      @opts = HashWithIndifferentAccess[:exclude_associations => [], :exclude_attributes => []].merge(opts)
-      @opts[:exclude_associations] = [@opts[:exclude_associations]].flatten
-      @opts[:exclude_attributes] = [@opts[:exclude_attributes]].flatten.map {|a| a.to_s}
-      
-      @association_names = @base.reflect_on_all_associations.map {|a| a.name} - @opts[:exclude_associations]
+      @opts = opts
       @associations = {}
       @join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@base, [], nil)
-      @attributes = {}
+      @search_attributes = {}
       @relation = @base.scoped
     end
     
     # Return the column info for the given model attribute (if not excluded as outlined above)
-    def column(attribute)
-      @base.columns_hash[attribute.to_s] unless @opts[:exclude_attributes].include?(attribute.to_s)
+    def column(attr)
+      @base.columns_hash[attr.to_s] if self.includes_attribute?(attr)
     end
     
     # Return the association reflection for the named association (if not excluded as outlined
     # above)
     def association(association)
-      if @association_names.include?(association.to_sym)
+       if self.includes_association?(association)
         @associations[association.to_sym] ||= @base.reflect_on_association(association.to_sym)
       end
     end
     
     # Return the column info for given association and column (if the association is not
     # excluded from search)
-    def association_column(association, column)
-      self.association(association).klass.columns_hash[column.to_s] rescue nil
+    def association_column(association, attr)
+      if self.includes_association?(association)
+        assoc = self.association(association)
+        assoc.klass.columns_hash[attr.to_s] unless assoc.klass._metasearch_exclude_attributes.include?(attr.to_s)
+      end
+    end
+    
+    def included_attributes
+      @included_attributes ||= @base.column_names - @base._metasearch_exclude_attributes
+    end
+    
+    def includes_attribute?(attr)
+      self.included_attributes.include?(attr.to_s)
+    end
+    
+    def included_associations
+      @included_associations ||= @base.reflect_on_all_associations.map {|a| a.name.to_s} - @base._metasearch_exclude_associations
+    end
+    
+    def includes_association?(assoc)
+      self.included_associations.include?(assoc.to_s)
     end
     
     # Build the search with the given search options. Options are in the form of a hash
@@ -110,15 +117,15 @@ module MetaSearch
     def build_association_method(association, attribute, type)
       metaclass.instance_eval do        
         define_method("#{association}_#{attribute}_#{type}") do
-          attributes["#{association}_#{attribute}_#{type}"]
+          search_attributes["#{association}_#{attribute}_#{type}"]
         end
       
         define_method("#{association}_#{attribute}_#{type}=") do |val|
-          attributes["#{association}_#{attribute}_#{type}"] = cast_attributes(association_type_for(association, attribute), val)
+          search_attributes["#{association}_#{attribute}_#{type}"] = cast_attributes(association_type_for(association, attribute), val)
           where = Where.new(type)
-          if where.valid_substitutions?(attributes["#{association}_#{attribute}_#{type}"])
+          if where.valid_substitutions?(search_attributes["#{association}_#{attribute}_#{type}"])
             join = build_or_find_association(association)
-            self.send("add_#{type}_where", join.aliased_table_name, attribute, attributes["#{association}_#{attribute}_#{type}"])
+            self.send("add_#{type}_where", join.aliased_table_name, attribute, search_attributes["#{association}_#{attribute}_#{type}"])
           end
         end
       end
@@ -127,14 +134,14 @@ module MetaSearch
     def build_attribute_method(attribute, type)
       metaclass.instance_eval do
         define_method("#{attribute}_#{type}") do
-          attributes["#{attribute}_#{type}"]
+          search_attributes["#{attribute}_#{type}"]
         end
       
         define_method("#{attribute}_#{type}=") do |val|
-          attributes["#{attribute}_#{type}"] = cast_attributes(type_for(attribute), val)
+          search_attributes["#{attribute}_#{type}"] = cast_attributes(type_for(attribute), val)
           where = Where.new(type)
-          if where.valid_substitutions?(attributes["#{attribute}_#{type}"])
-            self.send("add_#{type}_where", @base.table_name, attribute, attributes["#{attribute}_#{type}"])
+          if where.valid_substitutions?(search_attributes["#{attribute}_#{type}"])
+            self.send("add_#{type}_where", @base.table_name, attribute, search_attributes["#{attribute}_#{type}"])
           end
         end
       end
@@ -194,7 +201,7 @@ module MetaSearch
     end
     
     def matches_association(method_id, attribute, condition)
-      @association_names.each do |association|
+      self.included_associations.each do |association|
         test_attribute = attribute.dup
         if test_attribute.gsub!(/^#{association}_/, '') &&
           match = method_id.to_s.match("^(#{association})_(#{test_attribute})_(#{condition})=?$")
