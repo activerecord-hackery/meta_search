@@ -59,19 +59,20 @@ If you need to get an array into your where, and you don't care about parameter 
 you might choose to use a select or collection_select with multiple selection enabled,
 but everyone hates multiple selection boxes. MetaSearch adds a couple of additional
 helpers, +check_boxes+ and +collection_check_boxes+ to handle multiple selections in a
-more visually appealing manner. It can be called with or without a block, so something
-like this is possible:
+more visually appealing manner. They can be called with or without a block, so something
+like this is possible when you want additional formatting around your check boxes:
 
-  <table>
-    <th colspan="2">How many heads?</th>
+  <h3>How many heads?</h3>
+  <ul>
     <% f.check_boxes :number_of_heads_in,
-       [['One', 1], ['Two', 2], ['Three', 3]], :class => 'checkboxy' do |c| %>
-       <tr>
-         <td><%= c[:check_box] %></td>
-         <td><%= c[:label] %></td>
-       </tr>
+       [['One', 1], ['Two', 2], ['Three', 3]],
+       :class => 'checkboxy' do |c| %>
+    <li>
+      <%= c[:check_box] %>
+      <%= c[:label] %>
+    </li>
     <% end %>
-  </table>
+  </ul>
 
 Again, full documentation is in MetaSearch::Helpers::FormBuilder.
 
