@@ -89,7 +89,7 @@ this inside your models:
 You get the idea. Excluded attributes on a model will be honored across associations, so
 if an Article <tt>has_many :comments</tt> and the Comment model looks something like this:
 
-  Comment < ActiveRecord::Base
+  class Comment < ActiveRecord::Base
     validates_presence_of :user_id, :body
     metasearch_exclude_attr :user_id
   end
