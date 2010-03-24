@@ -70,6 +70,11 @@ module MetaSearch
       self.substitutions.count('?') == values.select {|v| !v.blank?}.size
     end
     
+    def format_params(*params)
+      params.flatten! unless keep_arrays?
+      params.map {|p| formatter.call(p)}
+    end
+    
     class << self
       # At application initialization, you can add additional custom Wheres to the mix.
       # in your application's <tt>config/initializers/meta_search.rb</tt>, place lines

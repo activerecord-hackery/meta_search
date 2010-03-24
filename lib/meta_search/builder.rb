@@ -125,7 +125,8 @@ module MetaSearch
           where = Where.new(type)
           if where.valid_substitutions?(search_attributes["#{association}_#{attribute}_#{type}"])
             join = build_or_find_association(association)
-            self.send("add_#{type}_where", join.aliased_table_name, attribute, search_attributes["#{association}_#{attribute}_#{type}"])
+            relation = join.relation.is_a?(Array) ? join.relation.last : join.relation
+            self.send("add_#{type}_where", relation.table[attribute], search_attributes["#{association}_#{attribute}_#{type}"])
           end
         end
       end
@@ -141,7 +142,7 @@ module MetaSearch
           search_attributes["#{attribute}_#{type}"] = cast_attributes(type_for(attribute), val)
           where = Where.new(type)
           if where.valid_substitutions?(search_attributes["#{attribute}_#{type}"])
-            self.send("add_#{type}_where", @base.table_name, attribute, search_attributes["#{attribute}_#{type}"])
+            self.send("add_#{type}_where", @relation.table[attribute], search_attributes["#{attribute}_#{type}"])
           end
         end
       end
@@ -149,18 +150,13 @@ module MetaSearch
     
     def build_where_method(condition, where)
       metaclass.instance_eval do
-        define_method("add_#{condition}_where") do |table, attribute, *args|
-          args.flatten! unless where.keep_arrays?
+        define_method("add_#{condition}_where") do |attribute, args|
           @relation = @relation.where(
-            "#{quote_table_name table}.#{quote_column_name attribute} " + 
-            "#{where.condition} #{where.substitutions}", *format_params(where.formatter, *args)
+            [attribute.to_sql, where.condition, where.substitutions].join(" "),
+            *where.format_params(args)
           )
         end
       end
-    end
-    
-    def format_params(formatter, *params)
-      par = params.map {|p| formatter.call(p)}
     end
     
     def build_or_find_association(association)
