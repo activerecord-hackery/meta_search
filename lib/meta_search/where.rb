@@ -44,7 +44,7 @@ module MetaSearch
   # <tt>comments_title_starts_with</tt>, <tt>moderations_value_less_than</tt>,
   # <tt>author_name_equals</tt>, and so on.
   class Where
-    attr_reader :name, :aliases, :types, :condition, :formatter
+    attr_reader :name, :aliases, :types, :condition, :formatter, :validator
     def initialize(where)
       if [String,Symbol].include?(where.class)
         where = Where.get(where) or raise ArgumentError("A where could not be instantiated for the argument #{where}")
@@ -53,11 +53,16 @@ module MetaSearch
       @aliases = where[:aliases]
       @types = where[:types]
       @condition = where[:condition]
+      @validator = where[:validator]
       @formatter = where[:formatter]
     end
         
     def format_param(param)
       formatter.call(param)
+    end
+    
+    def validate(param)
+      validator.call(param)
     end
     
     class << self
@@ -117,6 +122,13 @@ module MetaSearch
         if opts[:formatter].is_a?(String)
           formatter = opts[:formatter]
           opts[:formatter] = Proc.new {|param| eval formatter}
+        end
+        unless opts[:formatter].respond_to?(:call)
+          raise ArgumentError, "Invalid formatter for #{opts[:name]}, should be a Proc or String."
+        end
+        opts[:validator] ||= Proc.new {|param| !param.blank?}
+        unless opts[:validator].respond_to?(:call)
+          raise ArgumentError, "Invalid validator for #{opts[:name]}, should be a Proc."
         end
         opts[:aliases] ||= [args - [opts[:name]]].flatten
         @@wheres ||= {}

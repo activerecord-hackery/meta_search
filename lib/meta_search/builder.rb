@@ -123,7 +123,7 @@ module MetaSearch
         define_method("#{association}_#{attribute}_#{type}=") do |val|
           search_attributes["#{association}_#{attribute}_#{type}"] = cast_attributes(association_type_for(association, attribute), val)
           where = Where.new(type)
-          unless search_attributes["#{association}_#{attribute}_#{type}"].blank?
+          if where.validate(search_attributes["#{association}_#{attribute}_#{type}"])
             join = build_or_find_association(association)
             relation = join.relation.is_a?(Array) ? join.relation.last : join.relation
             self.send("add_#{type}_where", relation.table[attribute], search_attributes["#{association}_#{attribute}_#{type}"])
@@ -141,7 +141,7 @@ module MetaSearch
         define_method("#{attribute}_#{type}=") do |val|
           search_attributes["#{attribute}_#{type}"] = cast_attributes(type_for(attribute), val)
           where = Where.new(type)
-          unless search_attributes["#{attribute}_#{type}"].blank?
+          if where.validate(search_attributes["#{attribute}_#{type}"])
             self.send("add_#{type}_where", @relation.table[attribute], search_attributes["#{attribute}_#{type}"])
           end
         end
