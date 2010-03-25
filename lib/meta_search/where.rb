@@ -44,7 +44,7 @@ module MetaSearch
   # <tt>comments_title_starts_with</tt>, <tt>moderations_value_less_than</tt>,
   # <tt>author_name_equals</tt>, and so on.
   class Where
-    attr_reader :name, :aliases, :types, :condition, :substitutions, :formatter
+    attr_reader :name, :aliases, :types, :condition, :formatter
     def initialize(where)
       if [String,Symbol].include?(where.class)
         where = Where.get(where) or raise ArgumentError("A where could not be instantiated for the argument #{where}")
@@ -53,26 +53,11 @@ module MetaSearch
       @aliases = where[:aliases]
       @types = where[:types]
       @condition = where[:condition]
-      @substitutions = where[:substitutions]
       @formatter = where[:formatter]
-      @keep_arrays = where[:keep_arrays]
     end
-    
-    def keep_arrays?
-      @keep_arrays
-    end
-    
-    # Checks that the given +value+ is valid to use for the substitutions of this where.
-    # Requires that there are the same number of parameters as substitutions, and none of'
-    # them is blank.
-    def valid_substitutions?(*values)
-      values.flatten! unless values.size > 1 || self.keep_arrays?
-      self.substitutions.count('?') == values.select {|v| !v.blank?}.size
-    end
-    
-    def format_params(*params)
-      params.flatten! unless keep_arrays?
-      params.map {|p| formatter.call(p)}
+        
+    def format_param(param)
+      formatter.call(param)
     end
     
     class << self
@@ -127,9 +112,7 @@ module MetaSearch
         opts[:name] ||= args.first
         opts[:types] ||= ALL_TYPES
         opts[:types] = [opts[:types]].flatten
-        opts[:condition] ||= '='
-        opts[:substitutions] ||= '?'
-        opts[:keep_arrays] ||= false
+        opts[:condition] ||= :eq
         opts[:formatter] ||= Proc.new {|param| param}
         if opts[:formatter].is_a?(String)
           formatter = opts[:formatter]

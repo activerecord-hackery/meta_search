@@ -1,34 +1,4 @@
 require 'action_view'
-require 'action_dispatch'
-
-module ActionDispatch::Http::FilterParameters #:nodoc:
-  protected
-  # Temp fix for Rails 3 beta buggy parameter filtering on arrays 
-  def process_parameter_filter(original_params) #:nodoc:
-    return original_params.dup unless filtering_parameters?
-
-    filtered_params = {}
-    regexps, blocks = compile_parameter_filter
-
-    original_params.each do |key, value|
-      if regexps.find { |r| key =~ r }
-        value = '[FILTERED]'
-      elsif value.is_a?(Hash)
-        value = process_parameter_filter(value)
-      elsif value.is_a?(Array)
-        value = value.map { |v| v.is_a?(Hash) ? process_parameter_filter(v) : v }
-      elsif blocks.present?
-        key = key.dup
-        value = value.dup if value.duplicable?
-        blocks.each { |b| b.call(key, value) }
-      end
-
-      filtered_params[key] = value
-    end
-
-    filtered_params
-  end
-end
 
 module MetaSearch::Helpers
   module FormBuilder
@@ -154,7 +124,7 @@ module MetaSearch::Helpers
         yield c if block_given?
         html.safe_concat(c[:check_box] + c[:label])
       end
-      html
+      html unless block_given?
     end
     
     private

@@ -10,7 +10,10 @@ begin
     gem.email = "ernie@metautonomo.us"
     gem.homepage = "http://metautonomo.us"
     gem.authors = ["Ernie Miller"]
-    gem.add_development_dependency "activerecord", ">= 3.0.0.beta"
+    gem.add_development_dependency "shoulda"
+    gem.add_dependency "activerecord", ">= 3.0.0.beta1"
+    gem.add_dependency "activesupport", ">= 3.0.0.beta1"
+    gem.add_dependency "arel", ">= 0.3.1"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new
@@ -21,6 +24,9 @@ end
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
   test.libs << 'lib' << 'test'
+  test.libs << 'vendor/rails/activerecord/lib'
+  test.libs << 'vendor/rails/activesupport/lib'
+  test.libs << 'vendor/arel/lib'
   test.pattern = 'test/**/test_*.rb'
   test.verbose = true
 end
@@ -38,7 +44,8 @@ rescue LoadError
   end
 end
 
-task :test => :check_dependencies
+# Don't check dependencies on test, we're using vendored libraries
+# task :test => :check_dependencies
 
 task :default => :test
 

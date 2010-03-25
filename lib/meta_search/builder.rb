@@ -115,7 +115,7 @@ module MetaSearch
     end
     
     def build_association_method(association, attribute, type)
-      metaclass.instance_eval do        
+      singleton_class.instance_eval do        
         define_method("#{association}_#{attribute}_#{type}") do
           search_attributes["#{association}_#{attribute}_#{type}"]
         end
@@ -123,7 +123,7 @@ module MetaSearch
         define_method("#{association}_#{attribute}_#{type}=") do |val|
           search_attributes["#{association}_#{attribute}_#{type}"] = cast_attributes(association_type_for(association, attribute), val)
           where = Where.new(type)
-          if where.valid_substitutions?(search_attributes["#{association}_#{attribute}_#{type}"])
+          unless search_attributes["#{association}_#{attribute}_#{type}"].blank?
             join = build_or_find_association(association)
             relation = join.relation.is_a?(Array) ? join.relation.last : join.relation
             self.send("add_#{type}_where", relation.table[attribute], search_attributes["#{association}_#{attribute}_#{type}"])
@@ -133,7 +133,7 @@ module MetaSearch
     end
     
     def build_attribute_method(attribute, type)
-      metaclass.instance_eval do
+      singleton_class.instance_eval do
         define_method("#{attribute}_#{type}") do
           search_attributes["#{attribute}_#{type}"]
         end
@@ -141,7 +141,7 @@ module MetaSearch
         define_method("#{attribute}_#{type}=") do |val|
           search_attributes["#{attribute}_#{type}"] = cast_attributes(type_for(attribute), val)
           where = Where.new(type)
-          if where.valid_substitutions?(search_attributes["#{attribute}_#{type}"])
+          unless search_attributes["#{attribute}_#{type}"].blank?
             self.send("add_#{type}_where", @relation.table[attribute], search_attributes["#{attribute}_#{type}"])
           end
         end
@@ -149,12 +149,9 @@ module MetaSearch
     end
     
     def build_where_method(condition, where)
-      metaclass.instance_eval do
-        define_method("add_#{condition}_where") do |attribute, args|
-          @relation = @relation.where(
-            [attribute.to_sql, where.condition, where.substitutions].join(" "),
-            *where.format_params(args)
-          )
+      singleton_class.instance_eval do
+        define_method("add_#{condition}_where") do |attribute, param|
+          @relation = @relation.where(attribute.send(where.condition, where.format_param(param)))
         end
       end
     end
