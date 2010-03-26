@@ -68,7 +68,7 @@ class TestViewHelpers < ActionView::TestCase
     
     should "generate the expected HTML with a block" do
       @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]) do |c|
-        concat render :to => :string, :inline => "<p><%= c[:label] %> <%= c[:check_box] %></p>", :locals => {:c => c}
+        concat render :to => :string, :inline => "<p><%= c.label %> <%= c.box %></p>", :locals => {:c => c}
       end
       assert_dom_equal output_buffer,
                       '<p><label for="search_id_in_1">One</label> ' +
@@ -104,7 +104,7 @@ class TestViewHelpers < ActionView::TestCase
     
     should "generate the expected HTML with a block" do
       @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]) do |c|
-        concat render :to => :string, :inline => "<p><%= c[:label] %> <%= c[:check_box] %></p>", :locals => {:c => c}
+        concat render :to => :string, :inline => "<p><%= c.label %> <%= c.box %></p>", :locals => {:c => c}
       end
       assert_dom_equal output_buffer,
                        '<p><label for="search_id_in_1">One</label> <input checked="checked" id="search_id_in_1" ' +
@@ -134,7 +134,7 @@ class TestViewHelpers < ActionView::TestCase
       
       should "generate the expected HTML with a block" do
         @f.collection_check_boxes(:id_in, Company.all, :id, :name) do |c|
-          concat render :to => :string, :inline => "<p><%= c[:label] %> <%= c[:check_box] %></p>", :locals => {:c => c}
+          concat render :to => :string, :inline => "<p><%= c.label %> <%= c.box %></p>", :locals => {:c => c}
         end
         assert_dom_equal output_buffer,
                          '<p><label for="search_id_in_1">Initech</label> ' +

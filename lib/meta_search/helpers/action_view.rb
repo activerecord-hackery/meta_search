@@ -81,16 +81,16 @@ module MetaSearch::Helpers
     #
     # Additional formatting:
     #
-    #   <table>
-    #     <th colspan="2">How many heads?</th>
+    #   <h4>How many heads?</h4>
+    #   <ul>
     #     <% f.check_boxes :number_of_heads_in,
-    #        [['One', 1], ['Two', 2], ['Three', 3]], :class => 'checkboxy' do |c| %>
-    #        <tr>
-    #          <td><%= c[:check_box] %></td>
-    #          <td><%= c[:label] %></td>
-    #        </tr>
+    #        [['One', 1], ['Two', 2], ['Three', 3]], :class => 'checkboxy' do |check| %>
+    #        <li>
+    #          <%= check.box %>
+    #          <%= check.label %>
+    #        </li>
     #     <% end %>
-    #   </table>
+    #   </ul>
     #
     # This example will output the checkboxes and labels in a tabular format. You get the idea.
     def check_boxes(method, choices = [], options = {}, &block)
@@ -112,17 +112,17 @@ module MetaSearch::Helpers
       collection.each do |choice|
         text = choice.send(text_method)
         value = choice.send(value_method)
-        c = {}
-        c[:check_box] = @template.check_box_tag(
+        c = MetaSearch::Check.new
+        c.box = @template.check_box_tag(
           "#{@object_name}[#{method}][]",
           value,
           [@object.send(method)].flatten.include?(value),
           options.merge(:id => [@object_name, method.to_s, value.to_s.underscore].join('_'))
         )
-        c[:label] = @template.label_tag([@object_name, method.to_s, value.to_s.underscore].join('_'),
-                                        text)
+        c.label = @template.label_tag([@object_name, method.to_s, value.to_s.underscore].join('_'),
+                                      text)
         yield c if block_given?
-        html.safe_concat(c[:check_box] + c[:label])
+        html.safe_concat(c.box + c.label)
       end
       html unless block_given?
     end
