@@ -70,11 +70,12 @@ module MetaSearch
       # in your application's <tt>config/initializers/meta_search.rb</tt>, place lines
       # like this:
       #
-      #   MetaSearch::Where.add :between, :btw, {
-      #     :types =>  [:integer, :float, :decimal, :date, :datetime, :timestamp, :time],
-      #     :condition => 'BETWEEN',
-      #     :substitutions => '? AND ?',
-      #     :formatter => Proc.new {|param| param}
+      # MetaSearch::Where.add :between, :btw,
+      #   :condition => :in,
+      #   :types => [:integer, :float, :decimal, :date, :datetime, :timestamp, :time],
+      #   :formatter => Proc.new {|param| Range.new(param.first, param.last)},
+      #   :validator => Proc.new {|param|
+      #     param.is_a?(Array) && !(param[0].blank? || param[1].blank?)
       #   }
       #
       # The first options are all names for the where. Well, the first is a name, the rest
@@ -85,8 +86,8 @@ module MetaSearch
       # Which is one of several MetaSearch constants available for type assignment (the others
       # being +DATES+, +TIIMES+, +STRINGS+, and +NUMBERS+).
       #
-      # <tt>condition</tt> is the condition placed between the column and the substitutions, such as
-      # BETWEEN, IN, or =. Default is =.
+      # <tt>condition</tt> is the Arel::Attribute predication (read: conditional operator) used
+      # for the comparison. Default is :eq, or equality.
       #
       # <tt>substitutions</tt> is the text that comes next. It's normally going to have some
       # question marks in it (for variable substitution) if it's going to be of much use. The

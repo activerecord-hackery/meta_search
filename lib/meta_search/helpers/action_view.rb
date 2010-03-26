@@ -112,17 +112,17 @@ module MetaSearch::Helpers
       collection.each do |choice|
         text = choice.send(text_method)
         value = choice.send(value_method)
-        c = MetaSearch::Check.new
-        c.box = @template.check_box_tag(
+        check = MetaSearch::Check.new
+        check.box = @template.check_box_tag(
           "#{@object_name}[#{method}][]",
           value,
           [@object.send(method)].flatten.include?(value),
           options.merge(:id => [@object_name, method.to_s, value.to_s.underscore].join('_'))
         )
-        c.label = @template.label_tag([@object_name, method.to_s, value.to_s.underscore].join('_'),
+        check.label = @template.label_tag([@object_name, method.to_s, value.to_s.underscore].join('_'),
                                       text)
-        yield c if block_given?
-        html.safe_concat(c.box + c.label)
+        yield check if block_given?
+        html.safe_concat(check.box + check.label)
       end
       html unless block_given?
     end

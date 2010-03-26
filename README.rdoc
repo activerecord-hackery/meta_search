@@ -36,7 +36,13 @@ If none of the built-in search criteria work for you, you can add a new Where (o
 create an initializer (<tt>/config/initializers/meta_search.rb</tt>, for instance) and add lines
 like:
 
-  MetaSearch::Where.add :between, :btw, {:condition => 'BETWEEN', :substitutions => '? AND ?'}
+  MetaSearch::Where.add :between, :btw,
+    :condition => :in,
+    :types => [:integer, :float, :decimal, :date, :datetime, :timestamp, :time],
+    :formatter => Proc.new {|param| Range.new(param.first, param.last)},
+    :validator => Proc.new {|param|
+      param.is_a?(Array) && !(param[0].blank? || param[1].blank?)
+    }
 
 See MetaSearch::Where for info on the supported options.
 
@@ -62,15 +68,14 @@ helpers, +check_boxes+ and +collection_check_boxes+ to handle multiple selection
 more visually appealing manner. They can be called with or without a block, so something
 like this is possible when you want additional formatting around your check boxes:
 
-  <h3>How many heads?</h3>
+  <h4>How many heads?</h4>
   <ul>
     <% f.check_boxes :number_of_heads_in,
-       [['One', 1], ['Two', 2], ['Three', 3]],
-       :class => 'checkboxy' do |c| %>
-    <li>
-      <%= c[:check_box] %>
-      <%= c[:label] %>
-    </li>
+      [['One', 1], ['Two', 2], ['Three', 3]], :class => 'checkboxy' do |check| %>
+      <li>
+        <%= check.box %>
+        <%= check.label %>
+      </li>
     <% end %>
   </ul>
 
