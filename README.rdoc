@@ -59,6 +59,17 @@ MetaSearch adds a helper for this:
 lets you sandwich a list of fields, each in hash format, between the attribute and the usual
 options hash. See MetaSearch::Helpers::FormBuilder for more info.
 
+=== Compound conditions (any/all)
+
+All Where types automatically get an "any" and "all" variant. This has the same name and
+aliases as the original, but is suffixed with _any and _all, for an "OR" or "AND" search,
+respectively. So, if you want to provide the user with 5 different search boxes to enter
+possible article titles:
+
+  <%= f.multiparameter_field :title_contains_any,
+        *5.times.inject([]) {|a| a << {:field_type => :text_field}},
+        :size => 10 %>
+
 === check_boxes and collection_check_boxes
 
 If you need to get an array into your where, and you don't care about parameter order,

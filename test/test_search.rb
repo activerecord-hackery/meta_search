@@ -62,7 +62,7 @@ class TestSearch < Test::Unit::TestCase
         assert_does_not_contain @s.all, Company.where(:name => "Initech").first
       end
     end
-  
+      
     context "where developer name starts with Ernie" do
       setup do
         @s.developers_name_starts_with = 'Ernie'
@@ -152,6 +152,42 @@ class TestSearch < Test::Unit::TestCase
     
       should "not return a developer named Herb Myers" do
         assert_does_not_contain @s.all, Developer.where(:name => "Herb Myers").first
+      end
+    end
+    
+    context "where name starts with any of Ernie, Herb, or Peter" do
+      setup do
+        @s.name_starts_with_any = ['Ernie', 'Herb', 'Peter']
+      end
+    
+      should "return three results" do
+        assert_equal 3, @s.all.size
+      end
+      
+      should "return a developer named Ernie Miller" do
+        assert_contains @s.all, Developer.where(:name => 'Ernie Miller').first
+      end
+    
+      should "not return a developer named Samir Nagheenanajar" do
+        assert_does_not_contain @s.all, Developer.where(:name => "Samir Nagheenanajar").first
+      end
+    end
+    
+    context "where name contains all of a, e, and i" do
+      setup do
+        @s.name_contains_all = ['a', 'e', 'i']
+      end
+    
+      should "return two results" do
+        assert_equal 2, @s.all.size
+      end
+      
+      should "return a developer named Samir Nagheenanajar" do
+        assert_contains @s.all, Developer.where(:name => "Samir Nagheenanajar").first
+      end
+      
+      should "not return a developer named Ernie Miller" do
+        assert_does_not_contain @s.all, Developer.where(:name => 'Ernie Miller').first
       end
     end
     

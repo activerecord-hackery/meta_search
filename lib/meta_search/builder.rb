@@ -150,8 +150,14 @@ module MetaSearch
     
     def build_where_method(condition, where)
       singleton_class.instance_eval do
-        define_method("add_#{condition}_where") do |attribute, param|
-          @relation = @relation.where(attribute.send(where.condition, where.format_param(param)))
+        if where.splat_params?
+          define_method("add_#{condition}_where") do |attribute, param|
+            @relation = @relation.where(attribute.send(where.condition, *where.format_param(param)))
+          end
+        else
+          define_method("add_#{condition}_where") do |attribute, param|
+            @relation = @relation.where(attribute.send(where.condition, where.format_param(param)))
+          end
         end
       end
     end
