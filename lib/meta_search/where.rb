@@ -63,11 +63,11 @@ module MetaSearch
       @condition = where[:condition]
       @validator = where[:validator]
       @formatter = where[:formatter]
-      @splat_params = where[:splat_params]
+      @splat_param = where[:splat_param]
     end
     
-    def splat_params?
-      !!@splat_params
+    def splat_param?
+      !!@splat_param
     end
     
     # Format a parameter for searching using the Where's defined formatter.
@@ -120,7 +120,7 @@ module MetaSearch
       # <tt>{|param| !param.blank?}</tt>, so that empty parameters aren't added to the search, but you
       # can get more complex if you desire, like the one in the between example, above.
       #
-      # <tt>splat_params</tt>, if true, will cause the parameters sent to the condition in question
+      # <tt>splat_param</tt>, if true, will cause the parameters sent to the condition in question
       # to be splatted (converted to an argument list). This is not normally useful and defaults to
       # false, but is used when automatically creating compound Wheres (*_any, *_all) so that the
       # Arel attribute method gets the correct parameter list.
@@ -164,7 +164,7 @@ module MetaSearch
         opts[:types] ||= ALL_TYPES
         opts[:types] = [opts[:types]].flatten
         opts[:condition] ||= :eq
-        opts[:splat_params] ||= false
+        opts[:splat_param] ||= false
         opts[:formatter] ||= Proc.new {|param| param}
         if opts[:formatter].is_a?(String)
           formatter = opts[:formatter]
@@ -203,7 +203,7 @@ module MetaSearch
           create_where_from_args(*args, {
             :types => where.types,
             :condition => "#{where.condition}_#{compound}".to_sym,
-            :splat_params => true,
+            :splat_param => true,
             # Only use valid elements in the array
             :formatter => Proc.new {|param|
               param.select {|p| where.validator.call(p)}.map {|p| where.formatter.call(p)}
