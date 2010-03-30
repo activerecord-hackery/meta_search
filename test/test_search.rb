@@ -173,6 +173,20 @@ class TestSearch < Test::Unit::TestCase
       end
     end
     
+    context "where name does not equal Ernie Miller" do
+      setup do
+        @s.name_ne = 'Ernie Miller'
+      end
+    
+      should "return seven results" do
+        assert_equal 7, @s.all.size
+      end
+    
+      should "not return a developer named Ernie Miller" do
+        assert_does_not_contain @s.all, Developer.where(:name => "Ernie Miller").first
+      end
+    end
+    
     context "where name contains all of a, e, and i" do
       setup do
         @s.name_contains_all = ['a', 'e', 'i']

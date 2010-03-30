@@ -10,7 +10,7 @@ module MetaSearch
 
   DEFAULT_WHERES = [
     ['equals', 'eq'],
-    ['does_not_equal', 'ne', 'not', {:types => ALL_TYPES, :condition => :not}],
+    ['does_not_equal', 'ne', 'noteq', {:types => ALL_TYPES, :condition => :noteq}],
     ['contains', 'like', 'matches', {:types => STRINGS, :condition => :matches, :formatter => '"%#{param}%"'}],
     ['does_not_contain', 'nlike', 'notmatches', {:types => STRINGS, :condition => :notmatches, :formatter => '"%#{param}%"'}],
     ['starts_with', 'sw', {:types => STRINGS, :condition => :matches, :formatter => '"#{param}%"'}],

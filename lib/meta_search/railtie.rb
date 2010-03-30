@@ -2,8 +2,6 @@ require 'meta_search'
 
 module MetaSearch
   class Railtie < Rails::Railtie #:nodoc:
-    railtie_name :meta_search
-    
     initializer "meta_search.active_record" do |app|
       if defined? ::ActiveRecord
         require 'meta_search/searches/active_record'

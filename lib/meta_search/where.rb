@@ -12,7 +12,7 @@ module MetaSearch
   # === All data types
   #
   # * _equals_ (alias: _eq_) - Just as it sounds.
-  # * _does_not_equal_ (aliases: _ne_, _not_) - The opposite of equals, oddly enough.
+  # * _does_not_equal_ (aliases: _ne_, _noteq_) - The opposite of equals, oddly enough.
   # * _in_ - Takes an array, matches on equality with any of the items in the array.
   # * _not_in_ (aliases: _ni_, _notin_) - Like above, but negated.
   #
