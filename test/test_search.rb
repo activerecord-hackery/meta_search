@@ -295,7 +295,7 @@ class TestSearch < Test::Unit::TestCase
       end
       
       should "not contain results with time column before or after constraints" do
-        assert_empty @s.all.select {|r|
+        assert_equal [], @s.all.select {|r|
           r.tim < Time.parse('2000-01-01 13:00') || r.tim > Time.parse('2000-01-01 15:30')
         }
       end
@@ -311,7 +311,7 @@ class TestSearch < Test::Unit::TestCase
       end
       
       should "not contain results with timestamp column before 2010" do
-        assert_empty @s.all.select {|r|
+        assert_equal [], @s.all.select {|r|
           r.tms < Time.utc(2010, 1, 1)
         }
       end
@@ -327,7 +327,7 @@ class TestSearch < Test::Unit::TestCase
       end
       
       should "not contain results with timestamp in 2010" do
-        assert_empty @s.all.select {|r|
+        assert_equal [], @s.all.select {|r|
           r.tms >= Time.utc(2010, 1, 1)
         }
       end
@@ -343,7 +343,7 @@ class TestSearch < Test::Unit::TestCase
       end
       
       should "not contain results with decimal column <= 5000" do
-        assert_empty @s.all.select {|r|
+        assert_equal [], @s.all.select {|r|
           r.dec <= 5000
         }
       end
@@ -360,7 +360,7 @@ class TestSearch < Test::Unit::TestCase
       end
       
       should "not contain results with float column outside constraints" do
-        assert_empty @s.all.select {|r|
+        assert_equal [], @s.all.select {|r|
           r.flt < 2.5 || r.flt > 3.5
         }
       end
@@ -376,7 +376,7 @@ class TestSearch < Test::Unit::TestCase
       end
       
       should "not contain results outside the specified set" do
-        assert_empty @s.all.select {|r|
+        assert_equal [], @s.all.select {|r|
           ![1, 8, 729].include?(r.int)
         }
       end
@@ -392,7 +392,7 @@ class TestSearch < Test::Unit::TestCase
       end
       
       should "not contain results outside the specified set" do
-        assert_empty @s.all.reject {|r|
+        assert_equal [], @s.all.reject {|r|
           ![1, 8, 729].include?(r.int)
         }
       end
