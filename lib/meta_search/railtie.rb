@@ -1,3 +1,4 @@
+require 'rails'
 require 'meta_search'
 
 module MetaSearch

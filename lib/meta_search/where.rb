@@ -200,7 +200,7 @@ module MetaSearch
       def create_where_compounds_for(where)
         ['any', 'all'].each do |compound|
           args = [where.name, *where.aliases].map {|n| "#{n}_#{compound}"}
-          create_where_from_args(*args, {
+          create_where_from_args(*args + [{
             :types => where.types,
             :condition => "#{where.condition}_#{compound}".to_sym,
             :splat_param => true,
@@ -212,7 +212,7 @@ module MetaSearch
             :validator => Proc.new {|param|
               param.is_a?(Array) &&
               !param.select {|p| where.validator.call(p)}.blank?}
-            }
+            }]
           )
         end
       end

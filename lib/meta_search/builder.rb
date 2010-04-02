@@ -23,7 +23,7 @@ module MetaSearch
     include Utility
     
     attr_reader :base, :search_attributes, :relation, :join_dependency
-    delegate *RELATION_METHODS, :to => :relation
+    delegate *RELATION_METHODS + [:to => :relation]
 
     # Initialize a new Builder. Requires a base model to wrap, and supports a couple of options
     # for how it will expose this model and its associations to your controllers/views.

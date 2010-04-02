@@ -5,6 +5,22 @@ require 'action_view/test_case'
 class TestViewHelpers < ActionView::TestCase
   tests ActionView::Helpers::FormHelper
   
+  def setup
+    @controller = Class.new do
+      
+      attr_reader :url_for_options
+      def url_for(options)
+        @url_for_options = options
+        "http://www.example.com"
+      end
+      
+      def _router
+        ActionDispatch::Routing::RouteSet.new
+      end
+    end
+    @controller = @controller.new
+  end
+  
   context "A previously-filled search form" do
     setup do
       @s = Company.search
@@ -67,19 +83,29 @@ class TestViewHelpers < ActionView::TestCase
     end
     
     should "generate the expected HTML with a block" do
-      @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]) do |c|
-        concat render :to => :string, :inline => "<p><%= c.label %> <%= c.box %></p>", :locals => {:c => c}
-      end
-      assert_dom_equal output_buffer,
-                      '<p><label for="search_id_in_1">One</label> ' +
-                      '<input id="search_id_in_1" name="search[id_in][]" ' +
-                      'type="checkbox" value="1" /></p>' +
-                      '<p><label for="search_id_in_2">Two</label> ' +
-                      '<input id="search_id_in_2" name="search[id_in][]" ' +
-                      'type="checkbox" value="2" /></p>' +
-                      '<p><label for="search_id_in_3">Three</label> ' +
-                      '<input id="search_id_in_3" name="search[id_in][]" ' +
-                      'type="checkbox" value="3" /></p>'
+      expected = <<-EXPECTED
+<p>
+  <label for="search_id_in_1">One</label>
+  <input id="search_id_in_1" name="search[id_in][]" type="checkbox" value="1" />
+</p>
+<p>
+  <label for="search_id_in_2">Two</label>
+  <input id="search_id_in_2" name="search[id_in][]" type="checkbox" value="2" />
+</p>
+<p>
+  <label for="search_id_in_3">Three</label>
+  <input id="search_id_in_3" name="search[id_in][]" type="checkbox" value="3" />
+</p>
+      EXPECTED
+      assert_dom_equal expected,
+        render(:to => :string, :inline => <<-ERB)
+<%= @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]) do |c| -%>
+<p>
+  <%= c.label %>
+  <%= c.box %>
+</p>
+<% end -%>
+      ERB
     end
   end
   
@@ -103,15 +129,29 @@ class TestViewHelpers < ActionView::TestCase
     end
     
     should "generate the expected HTML with a block" do
-      @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]) do |c|
-        concat render :to => :string, :inline => "<p><%= c.label %> <%= c.box %></p>", :locals => {:c => c}
-      end
-      assert_dom_equal output_buffer,
-                       '<p><label for="search_id_in_1">One</label> <input checked="checked" id="search_id_in_1" ' +
-                       'name="search[id_in][]" type="checkbox" value="1" /></p><p><label for="search_id_in_2">' +
-                       'Two</label> <input id="search_id_in_2" name="search[id_in][]" type="checkbox" value="2" />' +
-                       '</p><p><label for="search_id_in_3">Three</label> <input checked="checked" id="search_id_in_3" ' +
-                       'name="search[id_in][]" type="checkbox" value="3" /></p>'
+      expected = <<-EXPECTED
+<p>
+  <label for="search_id_in_1">One</label>
+  <input id="search_id_in_1" name="search[id_in][]" type="checkbox" value="1" checked="checked" />
+</p>
+<p>
+  <label for="search_id_in_2">Two</label>
+  <input id="search_id_in_2" name="search[id_in][]" type="checkbox" value="2" />
+</p>
+<p>
+  <label for="search_id_in_3">Three</label>
+  <input id="search_id_in_3" name="search[id_in][]" type="checkbox" value="3" checked="checked" />
+</p>
+      EXPECTED
+      assert_dom_equal expected,
+                       render(:to => :string, :inline => <<-ERB)
+<%= @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]) do |c| -%>
+<p>
+  <%= c.label %>
+  <%= c.box %>
+</p>
+<% end -%>
+                       ERB
     end
     
     context "A form using collection_check_boxes with companies" do

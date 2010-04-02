@@ -1,4 +1,5 @@
 require 'action_view'
+require 'action_view/template'
 
 module MetaSearch::Helpers
   module FormBuilder

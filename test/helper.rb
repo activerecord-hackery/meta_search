@@ -11,7 +11,7 @@ Time.zone = 'Eastern Time (US & Canada)'
 
 ActiveRecord::Base.establish_connection(
   :adapter => 'sqlite3',
-  :database => ':memory:'
+  :database => 'blah'
 )
 
 dep = defined?(ActiveSupport::Dependencies) ? ActiveSupport::Dependencies : ::Dependencies
