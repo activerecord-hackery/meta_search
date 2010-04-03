@@ -10,8 +10,8 @@ FIXTURES_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 Time.zone = 'Eastern Time (US & Canada)'
 
 ActiveRecord::Base.establish_connection(
-  :adapter => 'sqlite3',
-  :database => 'blah'
+  :adapter => defined?(JRUBY_VERSION) ? 'jdbcsqlite3' : 'sqlite3',
+  :database => ':memory:'
 )
 
 dep = defined?(ActiveSupport::Dependencies) ? ActiveSupport::Dependencies : ::Dependencies

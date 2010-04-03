@@ -90,11 +90,11 @@ class TestSearch < Test::Unit::TestCase
         end
         
         should "join developers twice" do
-          assert @s.to_sql.match(/join "developers".*join "developers"/i)
+          assert @s.to_sql.match(/join\s+"?developers"?.*join\s+"?developers"?/i)
         end
         
         should "alias the second join of developers" do
-          assert @s.to_sql.match(/join "developers" "slackers_companies"/i)
+          assert @s.to_sql.match(/join\s+"?developers"?\s+"?slackers_companies"?/i)
         end
       end
     end
@@ -317,7 +317,7 @@ class TestSearch < Test::Unit::TestCase
       end
     end
     
-    context "where datetime column is before the year 2010" do
+    context "where timestamp column is before the year 2010" do
       setup do
         @s.tms_lt = Time.utc(2010, 1, 1)
       end
