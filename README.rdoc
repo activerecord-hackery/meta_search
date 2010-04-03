@@ -4,9 +4,12 @@ Extensible searching for your form_for enjoyment.
 
 == Getting Started
 
-Add a line to your Gemfile:
+This version of MetaSearch depends on some functionality I've added to Arel which
+has not yet been rolled into the official version. You can still try it out,
+though, by adding these lines to your Gemfile:
 
-  gem "meta_search"
+  gem 'arel', :git => "git://github.com/ernie/arel.git"
+  gem 'meta_search', :git => "git://github.com/ernie/meta_search.git"
 
 In your controller:
 
@@ -67,8 +70,8 @@ respectively. So, if you want to provide the user with 5 different search boxes 
 possible article titles:
 
   <%= f.multiparameter_field :title_contains_any,
-        *5.times.inject([]) {|a| a << {:field_type => :text_field}},
-        :size => 10 %>
+        *5.times.inject([]) {|a, b| a << {:field_type => :text_field}} +
+        [:size => 10] %>
 
 === check_boxes and collection_check_boxes
 
