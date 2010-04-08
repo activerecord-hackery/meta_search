@@ -1,6 +1,4 @@
 module MetaSearch
-  Check = Struct.new(:box, :label)
-
   NUMBERS = [:integer, :float, :decimal]
   STRINGS = [:string, :text, :binary]
   DATES = [:date]
