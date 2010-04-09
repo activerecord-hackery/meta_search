@@ -57,7 +57,7 @@ module MetaSearch
     end
     
     def collapse_multiparameter_options(opts)
-      opts.each_key do |k|
+      opts.keys.each do |k|
         if k.include?("(")
           real_attribute, position = k.split(/\(|\)/)
           cast = %w(a s i).include?(position.last) ? position.last : nil
