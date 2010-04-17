@@ -58,8 +58,10 @@ module MetaSearch
       end
     
       # Behaves almost exactly like the select method, but instead of generating a select tag,
-      # generates checkboxes. Since these checkboxes are just a checkbox and label with no
-      # additional formatting by default, this method can also take a block parameter.
+      # generates <tt>MetaSearch::Check</tt>s. These consist of two attributes, +box+ and +label+,
+      # which are (unsurprisingly) the HTML for the check box and the label. Called without a block,
+      # this method will return an array of check boxes. Called with a block, it will yield each
+      # check box to your template.
       #
       # *Parameters:*
       #
@@ -68,21 +70,9 @@ module MetaSearch
       #   label, and the last is the value for the checkbox
       # * +options+ - An options hash to be passed through to the checkboxes
       #
-      # If a block is supplied, rather than just rendering the checkboxes and labels, the block
-      # will receive a hash with two keys, :check_box and :label
-      #
       # *Examples:*
       #
-      # Simple usage:
-      #
-      #   <%= f.check_boxes :number_of_heads_in,
-      #       [['One', 1], ['Two', 2], ['Three', 3]], :class => 'checkboxy' %>
-      #
-      # This will result in three checkboxes, with the labels "One", "Two", and "Three", and
-      # corresponding numeric values, which will be sent as an array to the :number_of_heads_in
-      # attribute of the form_for object.
-      #
-      # Additional formatting:
+      # <b>Simple formatting:</b>
       #
       #   <h4>How many heads?</h4>
       #   <ul>
@@ -95,7 +85,23 @@ module MetaSearch
       #     <% end %>
       #   </ul>
       #
-      # This example will output the checkboxes and labels in a tabular format. You get the idea.
+      # This example will output the checkboxes and labels in an unordered list format.
+      #
+      # <b>Grouping:</b>
+      #
+      # Chain <tt>in_groups_of(<num>, false)</tt> on check_boxes like so:
+      #   <h4>How many heads?</h4>
+      #   <p>
+      #     <% f.check_boxes(:number_of_heads_in,
+      #        [['One', 1], ['Two', 2], ['Three', 3]],
+      #        :class => 'checkboxy').in_groups_of(2, false) do |checks| %>
+      #       <% checks.each do |check| %>
+      #         <%= check.box %>
+      #         <%= check.label %>
+      #       <% end %>
+      #       <br />
+      #     <% end %>
+      #   </p>
       def check_boxes(method, choices = [], options = {}, &block)
         unless choices.first.respond_to?(:first) && choices.first.respond_to?(:last)
           raise ArgumentError, 'invalid choice array specified'
@@ -108,10 +114,12 @@ module MetaSearch
       #
       # Example:
       #
-      #    <%= f.collection_check_boxes :head_sizes_in, HeadSize.all,
-      #        :id, :name, :class => 'head-check' %>
+      #   <%= f.collection_check_boxes :head_sizes_in, HeadSize.all,
+      #       :id, :name, :class => 'headcheck' do |check| %>
+      #     <%= check.box %> <%= check.label %>
+      #   <% end %>
       def collection_check_boxes(method, collection, value_method, text_method, options = {}, &block)
-        html = ''.html_safe
+        check_boxes = []
         collection.each do |choice|
           text = choice.send(text_method)
           value = choice.send(value_method)
@@ -124,10 +132,13 @@ module MetaSearch
           )
           check.label = @template.label_tag([@object_name, method.to_s, value.to_s.underscore].join('_'),
                                         text)
-          yield check if block_given?
-          html.safe_concat(check.box + check.label)
+          if block_given?
+            yield check
+          else
+            check_boxes << check
+          end
         end
-        html unless block_given?
+        check_boxes unless block_given?
       end
     
       private

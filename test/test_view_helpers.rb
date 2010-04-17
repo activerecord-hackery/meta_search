@@ -72,14 +72,8 @@ class TestViewHelpers < ActionView::TestCase
       end
     end
     
-    should "generate the expected HTML without a block" do
-      assert_dom_equal '<input id="search_id_in_1" name="search[id_in][]" ' +
-                       'type="checkbox" value="1" /><label for="search_id_in_1">One</label>' +
-                       '<input id="search_id_in_2" name="search[id_in][]" ' +
-                       'type="checkbox" value="2" /><label for="search_id_in_2">Two</label>' +
-                       '<input id="search_id_in_3" name="search[id_in][]" ' +
-                       'type="checkbox" value="3" /><label for="search_id_in_3">Three</label>',
-                       @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]])
+    should "return an array of check boxes without a block" do
+      assert @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]).all?{|c| c.is_a?(MetaSearch::Check)}
     end
     
     should "generate the expected HTML with a block" do
@@ -118,14 +112,8 @@ class TestViewHelpers < ActionView::TestCase
       end
     end
     
-    should "generate the expected HTML without a block" do
-      assert_dom_equal '<input checked="checked" id="search_id_in_1" name="search[id_in][]" ' +
-                       'type="checkbox" value="1" /><label for="search_id_in_1">One</label>' +
-                       '<input id="search_id_in_2" name="search[id_in][]" ' +
-                       'type="checkbox" value="2" /><label for="search_id_in_2">Two</label>' +
-                       '<input checked="checked" id="search_id_in_3" name="search[id_in][]" ' +
-                       'type="checkbox" value="3" /><label for="search_id_in_3">Three</label>',
-                       @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]])
+    should "return an array of check boxes without a block" do
+      assert @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]).all?{|c| c.is_a?(MetaSearch::Check)}
     end
     
     should "generate the expected HTML with a block" do
@@ -162,14 +150,8 @@ class TestViewHelpers < ActionView::TestCase
         end
       end
       
-      should "generate the expected HTML without a block" do
-        assert_dom_equal '<input id="search_id_in_1" name="search[id_in][]" type="checkbox" ' +
-                         'value="1" /><label for="search_id_in_1">Initech</label>' +
-                         '<input id="search_id_in_2" name="search[id_in][]" type="checkbox" ' +
-                         'value="2" /><label for="search_id_in_2">Advanced Optical Solutions</label>' +
-                         '<input id="search_id_in_3" name="search[id_in][]" type="checkbox" ' +
-                         'value="3" /><label for="search_id_in_3">Mission Data</label>',
-                         @f.collection_check_boxes(:id_in, Company.all, :id, :name)
+      should "return an array of check boxes without a block" do
+       assert @f.collection_check_boxes(:id_in, Company.all, :id, :name).all?{|c| c.is_a?(MetaSearch::Check)}
       end
       
       should "generate the expected HTML with a block" do
