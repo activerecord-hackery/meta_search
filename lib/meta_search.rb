@@ -27,13 +27,9 @@ module MetaSearch
 end
 
 require 'active_record'
-require 'meta_search/searches/active_record'
-ActiveRecord::Base.class_eval do
-  include MetaSearch::Searches::ActiveRecord
-end
-
 require 'action_view'
+require 'meta_search/searches/active_record'
 require 'meta_search/helpers/action_view'
-ActionView::Helpers::FormBuilder.class_eval do
-  include MetaSearch::Helpers::FormBuilder
-end
+
+ActiveRecord::Base.send(:include, MetaSearch::Searches::ActiveRecord)
+ActionView::Helpers::FormBuilder.send(:include, MetaSearch::Helpers::FormBuilder)
