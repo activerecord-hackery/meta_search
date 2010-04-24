@@ -27,11 +27,6 @@ Fixtures.create_fixtures(FIXTURES_PATH, ActiveRecord::Base.connection.tables)
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'meta_search'
-require 'meta_search/searches/active_record'
-require 'meta_search/helpers/action_view'
-
-MetaSearch::Searches::ActiveRecord.enable!
-MetaSearch::Helpers::FormBuilder.enable!
 
 class Test::Unit::TestCase
 end

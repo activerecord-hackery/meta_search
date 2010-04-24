@@ -1,3 +1,4 @@
+require 'active_support/concern'
 require 'meta_search/builder'
 
 module MetaSearch
@@ -13,9 +14,9 @@ module MetaSearch
         builder = MetaSearch::Builder.new(self, search_options)
         builder.build(opts)
       end
-      
+    
       private
-      
+    
       # Excludes model attributes from searchability. This means that searches can't be created against
       # these columns, whether the search is based on this model, or the model's attributes are being
       # searched by association from another model. If a Comment <tt>belongs_to :article</tt> but declares
@@ -29,7 +30,7 @@ module MetaSearch
           self._metasearch_exclude_attributes = (self._metasearch_exclude_attributes + [attr]).uniq
         end
       end
-      
+    
       # Excludes model associations from searchability. This mean that searches can't be created against
       # these associations. An article that <tt>has_many :comments</tt> but excludes comments from
       # searching by declaring <tt>metasearch_exclude_assoc :comments</tt> won't make any of the

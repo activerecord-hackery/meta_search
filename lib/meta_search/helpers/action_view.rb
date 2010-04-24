@@ -5,11 +5,10 @@ module MetaSearch
   
   module Helpers
     module FormBuilder
-      def self.enable! #:nodoc:
-        ::ActionView::Helpers::FormBuilder.class_eval do
-          include FormBuilder
-          self.field_helpers += ['multiparameter_field', 'check_boxes', 'collection_check_boxes']
-        end
+      extend ActiveSupport::Concern
+      
+      included do
+        self.field_helpers += ['multiparameter_field', 'check_boxes', 'collection_check_boxes']
       end
     
       # Like other form_for field methods (text_field, hidden_field, password_field) etc,

@@ -26,6 +26,14 @@ module MetaSearch
   RELATION_METHODS = [:joins, :includes, :all, :count, :to_sql, :paginate, :find_each, :first, :last, :each]
 end
 
-if defined?(::Rails::Railtie)
-  require 'meta_search/railtie'
+require 'active_record'
+require 'meta_search/searches/active_record'
+ActiveRecord::Base.class_eval do
+  include MetaSearch::Searches::ActiveRecord
+end
+
+require 'action_view'
+require 'meta_search/helpers/action_view'
+ActionView::Helpers::FormBuilder.class_eval do
+  include MetaSearch::Helpers::FormBuilder
 end
