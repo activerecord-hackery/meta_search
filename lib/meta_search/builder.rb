@@ -59,7 +59,9 @@ module MetaSearch
     end
     
     def included_attributes
-      @included_attributes ||= @base.column_names - @base._metasearch_exclude_attributes
+      @included_attributes ||= @base._metasearch_include_attributes.blank? ?
+        @base.column_names - @base._metasearch_exclude_attributes :
+        @base.column_names & @base._metasearch_include_attributes
     end
     
     def includes_attribute?(attr)
@@ -67,7 +69,9 @@ module MetaSearch
     end
     
     def included_associations
-      @included_associations ||= @base.reflect_on_all_associations.map {|a| a.name.to_s} - @base._metasearch_exclude_associations
+      @included_associations ||= @base._metasearch_include_associations.blank? ?
+        @base.reflect_on_all_associations.map {|a| a.name.to_s} - @base._metasearch_exclude_associations :
+        @base.reflect_on_all_associations.map {|a| a.name.to_s} & @base._metasearch_include_associations
     end
     
     def includes_association?(assoc)
@@ -89,7 +93,7 @@ module MetaSearch
     private
     
     def method_missing(method_id, *args, &block)
-      if match = method_id.to_s.match(/^(.*)\(([0-9]+).*\)$/)
+      if match = method_id.to_s.match(/^(.*)\(([0-9]+).*\)$/) # Multiparameter reader
         method_name, index = match.captures
         vals = self.send(method_name)
         vals.is_a?(Array) ? vals[index.to_i - 1] : nil

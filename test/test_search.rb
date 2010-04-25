@@ -123,8 +123,28 @@ class TestSearch < Test::Unit::TestCase
       @s = Developer.search
     end
     
+    should "exclude the column named company_id" do
+      assert_nil @s.column(:company_id)
+    end
+    
+    should "raise an error if we try to search on company_id" do
+      assert_raise NoMethodError do
+        @s.company_id_eq = 1
+      end
+    end
+    
     should "have an association named projects" do
       assert @s.association(:projects)
+    end
+    
+    should "not have an association named company" do
+      assert_nil @s.association(:company)
+    end
+    
+    should "raise an error if we try to search on company" do
+      assert_raise NoMethodError do
+        @s.company_name_eq = 'Initech'
+      end
     end
     
     context "where developer is Bob-approved" do
