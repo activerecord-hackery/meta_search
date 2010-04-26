@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'meta_search/method'
 require 'meta_search/builder'
 
 module MetaSearch::Searches
@@ -8,12 +9,12 @@ module MetaSearch::Searches
     included do
       class_attribute :_metasearch_include_attributes, :_metasearch_exclude_attributes
       class_attribute :_metasearch_include_associations, :_metasearch_exclude_associations
-      class_attribute :_metasearch_scopes
+      class_attribute :_metasearch_methods
       self._metasearch_include_attributes =
         self._metasearch_exclude_attributes =
         self._metasearch_exclude_associations =
         self._metasearch_include_associations = []
-      self._metasearch_scopes = {}
+      self._metasearch_methods = {}
         
       singleton_class.instance_eval do
         alias_method :metasearch_include_attr, :searchable_attributes
@@ -80,6 +81,13 @@ module MetaSearch::Searches
           assoc = assoc.to_s
           raise(ArgumentError, "No such association #{assoc} in #{self}") unless self.reflect_on_all_associations.map {|a| a.name.to_s}.include?(assoc)
           self._metasearch_include_associations = (self._metasearch_include_associations + [assoc]).uniq
+        end
+      end
+      
+      def search_methods(*args)
+        opts = args.last.is_a?(Hash) ? args.pop : {}
+        args.flatten.map(&:to_s).each do |arg|
+          self._metasearch_methods[arg] = MetaSearch::Method.new(arg, opts)
         end
       end
     end

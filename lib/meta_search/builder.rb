@@ -97,6 +97,9 @@ module MetaSearch
         method_name, index = match.captures
         vals = self.send(method_name)
         vals.is_a?(Array) ? vals[index.to_i - 1] : nil
+      elsif match = matches_named_method(method_id)
+        build_method(match)
+        self.send(method_id, *args)
       elsif match = matches_attribute_method(method_id)
         condition, attribute, association = match.captures.reverse
         build_method(association, attribute, condition)
@@ -110,11 +113,31 @@ module MetaSearch
       end
     end
     
-    def build_method(association, attribute, suffix)
-      if association.blank?
+    def build_method(association_or_name, attribute = nil, suffix = nil)
+      if attribute.blank? && suffix.blank?
+        build_named_method(association_or_name)
+      elsif association_or_name.blank?
         build_attribute_method(attribute, suffix)
       else
-        build_association_method(association, attribute, suffix)
+        build_association_method(association_or_name, attribute, suffix)
+      end
+    end
+    
+    def build_named_method(name)
+      meth = @base._metasearch_methods[name]
+      singleton_class.instance_eval do
+        define_method(name) do
+          search_attributes[name]
+        end
+      
+        define_method("#{name}=") do |val|
+          search_attributes[name] = cast_attributes(meth.type, val)
+          if meth.validate(search_attributes[name])
+            @relation = meth.splat_param? ? 
+              @relation.send(meth.name, *meth.format_param(search_attributes[name])) :
+              @relation.send(meth.name, meth.format_param(search_attributes[name]))
+          end
+        end
       end
     end
     
@@ -176,6 +199,11 @@ module MetaSearch
         found_association = @join_dependency.join_associations.last
       end
       found_association
+    end
+    
+    def matches_named_method(name)
+      method_name = name.to_s.sub(/\=$/, '')
+      return method_name if @base._metasearch_methods.has_key?(method_name)
     end
     
     def matches_attribute_method(method_id)

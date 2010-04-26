@@ -116,6 +116,20 @@ class TestSearch < Test::Unit::TestCase
         assert_does_not_contain @s.all, Company.where(:name => "Mission Data").first
       end
     end
+    
+    context "where backwards name is hcetinI" do
+      setup do
+        @s.backwards_name = 'hcetinI'
+      end
+      
+      should "return 1 result" do
+        assert_equal 1, @s.all.size
+      end
+      
+      should "return a company named Initech" do
+        assert_contains @s.all, Company.where(:name => 'Initech').first
+      end
+    end
   end
   
   context "A developer search" do
