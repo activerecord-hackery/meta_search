@@ -17,10 +17,10 @@ module MetaSearch::Searches
       self._metasearch_methods = {}
         
       singleton_class.instance_eval do
-        alias_method :metasearch_include_attr, :searchable_attributes
-        alias_method :metasearch_exclude_attr, :non_searchable_attributes
-        alias_method :metasearch_include_assoc, :searchable_associations
-        alias_method :metasearch_exclude_assoc, :non_searchable_associations
+        alias_method :metasearch_include_attr, :attr_searchable
+        alias_method :metasearch_exclude_attr, :attr_unsearchable
+        alias_method :metasearch_include_assoc, :assoc_searchable
+        alias_method :metasearch_exclude_assoc, :assoc_unsearchable
       end
     end
 
@@ -41,10 +41,10 @@ module MetaSearch::Searches
       # Excludes model attributes from searchability. This means that searches can't be created against
       # these columns, whether the search is based on this model, or the model's attributes are being
       # searched by association from another model. If a Comment <tt>belongs_to :article</tt> but declares
-      # <tt>non_searchable_attributes :user_id</tt> then <tt>Comment.search</tt> won't accept parameters
+      # <tt>attr_unsearchable :user_id</tt> then <tt>Comment.search</tt> won't accept parameters
       # like <tt>:user_id_equals</tt>, nor will an Article.search accept the parameter
       # <tt>:comments_user_id_equals</tt>.
-      def non_searchable_attributes(*args)
+      def attr_unsearchable(*args)
         args.flatten.each do |attr|
           attr = attr.to_s
           raise(ArgumentError, "No persisted attribute (column) named #{attr} in #{self}") unless self.columns_hash.has_key?(attr)
@@ -52,10 +52,10 @@ module MetaSearch::Searches
         end
       end
 
-      # Like non_searchable_attributes, but operates as a whitelist rather than blacklist. If both
-      # <tt>searchable_attributes</tt> and <tt>non_searchable_attributes</tt> are present, the latter
+      # Like <tt>attr_unsearchable</tt>, but operates as a whitelist rather than blacklist. If both
+      # <tt>attr_searchable</tt> and <tt>attr_unsearchable</tt> are present, the latter
       # is ignored.
-      def searchable_attributes(*args)
+      def attr_searchable(*args)
         args.flatten.each do |attr|
           attr = attr.to_s
           raise(ArgumentError, "No persisted attribute (column) named #{attr} in #{self}") unless self.columns_hash.has_key?(attr)
@@ -65,9 +65,9 @@ module MetaSearch::Searches
       
       # Excludes model associations from searchability. This mean that searches can't be created against
       # these associations. An article that <tt>has_many :comments</tt> but excludes comments from
-      # searching by declaring <tt>non_searchable_associations :comments</tt> won't make any of the
+      # searching by declaring <tt>assoc_unsearchable :comments</tt> won't make any of the
       # <tt>comments_*</tt> methods available.
-      def non_searchable_associations(*args)
+      def assoc_unsearchable(*args)
         args.flatten.each do |assoc|
           assoc = assoc.to_s
           raise(ArgumentError, "No such association #{assoc} in #{self}") unless self.reflect_on_all_associations.map {|a| a.name.to_s}.include?(assoc)
@@ -75,8 +75,9 @@ module MetaSearch::Searches
         end
       end
       
-      # As with <tt>searchable_attributes</tt> this is the whitelist version of <tt>non_searchable_associations</tt>
-      def searchable_associations(*args)
+      # As with <tt>attr_searchable</tt> this is the whitelist version of
+      # <tt>assoc_unsearchable</tt>
+      def assoc_searchable(*args)
         args.flatten.each do |assoc|
           assoc = assoc.to_s
           raise(ArgumentError, "No such association #{assoc} in #{self}") unless self.reflect_on_all_associations.map {|a| a.name.to_s}.include?(assoc)

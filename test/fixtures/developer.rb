@@ -3,6 +3,6 @@ class Developer < ActiveRecord::Base
   has_and_belongs_to_many :projects
   has_many :notes, :as => :notable
   
-  searchable_attributes :name, :salary
-  searchable_associations :notes, :projects
+  attr_searchable :name, :salary
+  assoc_searchable :notes, :projects
 end

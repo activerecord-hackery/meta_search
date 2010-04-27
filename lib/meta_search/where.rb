@@ -44,7 +44,7 @@ module MetaSearch
   # <tt>comments_title_starts_with</tt>, <tt>moderations_value_less_than</tt>,
   # <tt>author_name_equals</tt>, and so on.
   #
-  # Additionally, all of the above condition types also have an _any and _all version, which
+  # Additionally, all of the above predicate types also have an _any and _all version, which
   # expects an array of the corresponding parameter type, and requires any or all of the
   # parameters to be a match, respectively. So:
   #
@@ -52,7 +52,7 @@ module MetaSearch
   #
   # will match articles authored by Jimmy, Bobby, or Freddy, but not Winifred.
   class Where
-    attr_reader :name, :aliases, :types, :condition, :formatter, :validator
+    attr_reader :name, :aliases, :types, :predicate, :formatter, :validator
     def initialize(where)
       if [String,Symbol].include?(where.class)
         where = Where.get(where) or raise ArgumentError("A where could not be instantiated for the argument #{where}")
@@ -60,7 +60,7 @@ module MetaSearch
       @name = where[:name]
       @aliases = where[:aliases]
       @types = where[:types]
-      @condition = where[:condition]
+      @predicate = where[:predicate]
       @validator = where[:validator]
       @formatter = where[:formatter]
       @splat_param = where[:splat_param]
@@ -80,13 +80,22 @@ module MetaSearch
       validator.call(param)
     end
     
+    # Evaluate the Where for the given relation, attribute, and parameter(s)
+    def eval(relation, attribute, param)
+      if splat_param?
+        relation.where(attribute.send(predicate, *format_param(param)))
+      else
+        relation.where(attribute.send(predicate, format_param(param)))
+      end
+    end
+    
     class << self
       # At application initialization, you can add additional custom Wheres to the mix.
       # in your application's <tt>config/initializers/meta_search.rb</tt>, place lines
       # like this:
       #
       # MetaSearch::Where.add :between, :btw,
-      #   :condition => :in,
+      #   :predicate => :in,
       #   :types => [:integer, :float, :decimal, :date, :datetime, :timestamp, :time],
       #   :formatter => Proc.new {|param| Range.new(param.first, param.last)},
       #   :validator => Proc.new {|param|
@@ -101,7 +110,7 @@ module MetaSearch
       # Which is one of several MetaSearch constants available for type assignment (the others
       # being +DATES+, +TIIMES+, +STRINGS+, and +NUMBERS+).
       #
-      # <tt>condition</tt> is the Arel::Attribute predication (read: conditional operator) used
+      # <tt>predicate</tt> is the Arel::Attribute predication (read: conditional operator) used
       # for the comparison. Default is :eq, or equality.
       #
       # <tt>formatter</tt> is the Proc that will do any formatting to the variables to be substituted.
@@ -110,7 +119,7 @@ module MetaSearch
       #
       # For example, this is the definition of the "contains" Where:
       #
-      #   ['contains', 'like', {:types => STRINGS, :condition => :matches, :formatter => '"%#{param}%"'}]
+      #   ['contains', 'like', {:types => STRINGS, :predicate => :matches, :formatter => '"%#{param}%"'}]
       #
       # Be sure to single-quote the string, so that variables aren't interpolated until later. If in doubt,
       # just use a Proc.
@@ -120,7 +129,7 @@ module MetaSearch
       # <tt>{|param| !param.blank?}</tt>, so that empty parameters aren't added to the search, but you
       # can get more complex if you desire, like the one in the between example, above.
       #
-      # <tt>splat_param</tt>, if true, will cause the parameters sent to the condition in question
+      # <tt>splat_param</tt>, if true, will cause the parameters sent to the predicate in question
       # to be splatted (converted to an argument list). This is not normally useful and defaults to
       # false, but is used when automatically creating compound Wheres (*_any, *_all) so that the
       # Arel attribute method gets the correct parameter list.
@@ -134,11 +143,11 @@ module MetaSearch
         @@wheres
       end
       
-      # Get the where matching a method or condition.
-      def get(method_id_or_condition)
+      # Get the where matching a method or predicate.
+      def get(method_id_or_predicate)
         return nil unless where_key = @@wheres.keys.
           sort {|a,b| b.length <=> a.length}.
-          detect {|n| method_id_or_condition.to_s.match(/#{n}=?$/)}
+          detect {|n| method_id_or_predicate.to_s.match(/#{n}=?$/)}
         where = @@wheres[where_key]
         where = @@wheres[where] if where.is_a?(String)
         where
@@ -163,7 +172,7 @@ module MetaSearch
         opts[:name] ||= args.first
         opts[:types] ||= ALL_TYPES
         opts[:types] = [opts[:types]].flatten
-        opts[:condition] ||= :eq
+        opts[:predicate] ||= :eq
         opts[:splat_param] ||= false
         opts[:formatter] ||= Proc.new {|param| param}
         if opts[:formatter].is_a?(String)
@@ -202,7 +211,7 @@ module MetaSearch
           args = [where.name, *where.aliases].map {|n| "#{n}_#{compound}"}
           create_where_from_args(*args + [{
             :types => where.types,
-            :condition => "#{where.condition}_#{compound}".to_sym,
+            :predicate => "#{where.predicate}_#{compound}".to_sym,
             :splat_param => true,
             # Only use valid elements in the array
             :formatter => Proc.new {|param|

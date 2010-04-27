@@ -6,8 +6,17 @@ class Company < ActiveRecord::Base
   has_many :data_types
   
   scope :backwards_name, lambda {|name| where(:name => name.reverse)}
-  search_methods :backwards_name
-  search_methods :developer_count_between, :splat_param => true
-  non_searchable_attributes :updated_at
-  non_searchable_associations :notes
+  scope :with_slackers_by_name_and_salary_range,
+    lambda {|name, low, high|
+      joins(:slackers).where(:developers => {:name => name, :salary => low..high})
+    }
+  search_methods :backwards_name, :backwards_name_as_string
+  search_methods :with_slackers_by_name_and_salary_range,
+    :splat_param => true, :type => [:string, :integer, :integer]
+  attr_unsearchable :updated_at
+  assoc_unsearchable :notes
+  
+  def self.backwards_name_as_string(name)
+    name.reverse
+  end
 end

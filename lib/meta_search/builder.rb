@@ -101,13 +101,9 @@ module MetaSearch
         build_method(match)
         self.send(method_id, *args)
       elsif match = matches_attribute_method(method_id)
-        condition, attribute, association = match.captures.reverse
-        build_method(association, attribute, condition)
+        predicate, attribute, association = match.captures.reverse
+        build_method(association, attribute, predicate)
         self.send(preferred_method_name(method_id), *args)
-      elsif match = matches_where_method(method_id)
-        condition = match.captures.first
-        build_where_method(condition, Where.new(condition))
-        self.send(method_id, *args)
       else
         super
       end
@@ -131,11 +127,14 @@ module MetaSearch
         end
       
         define_method("#{name}=") do |val|
-          search_attributes[name] = cast_attributes(meth.type, val)
+          search_attributes[name] = meth.cast_param(val)
           if meth.validate(search_attributes[name])
-            @relation = meth.splat_param? ? 
-              @relation.send(meth.name, *meth.format_param(search_attributes[name])) :
-              @relation.send(meth.name, meth.format_param(search_attributes[name]))
+            return_value = meth.eval(@relation, search_attributes[name])
+            if return_value.is_a?(ActiveRecord::Relation)
+              @relation = return_value
+            else
+              raise NonRelationReturnedError, "Custom search methods must return an ActiveRecord::Relation. #{name} returned a #{return_value.class}"
+            end
           end
         end
       end
@@ -153,7 +152,7 @@ module MetaSearch
           if where.validate(search_attributes["#{association}_#{attribute}_#{type}"])
             join = build_or_find_association(association)
             relation = join.relation.is_a?(Array) ? join.relation.last : join.relation
-            self.send("add_#{type}_where", relation.table[attribute], search_attributes["#{association}_#{attribute}_#{type}"])
+            @relation = where.eval(@relation, relation.table[attribute], search_attributes["#{association}_#{attribute}_#{type}"])
           end
         end
       end
@@ -169,21 +168,7 @@ module MetaSearch
           search_attributes["#{attribute}_#{type}"] = cast_attributes(type_for(attribute), val)
           where = Where.new(type)
           if where.validate(search_attributes["#{attribute}_#{type}"])
-            self.send("add_#{type}_where", @relation.table[attribute], search_attributes["#{attribute}_#{type}"])
-          end
-        end
-      end
-    end
-    
-    def build_where_method(condition, where)
-      singleton_class.instance_eval do
-        if where.splat_param?
-          define_method("add_#{condition}_where") do |attribute, param|
-            @relation = @relation.where(attribute.send(where.condition, *where.format_param(param)))
-          end
-        else
-          define_method("add_#{condition}_where") do |attribute, param|
-            @relation = @relation.where(attribute.send(where.condition, where.format_param(param)))
+            @relation = where.eval(@relation, @relation.table[attribute], search_attributes["#{attribute}_#{type}"])
           end
         end
       end
@@ -211,10 +196,10 @@ module MetaSearch
       where = Where.new(method_id) rescue nil
       return nil unless method_name && where
       match = method_name.match("^(.*)_(#{where.name})=?$")
-      attribute, condition = match.captures
+      attribute, predicate = match.captures
       if where.types.include?(type_for(attribute))
         return match
-      elsif match = matches_association(method_name, attribute, condition)
+      elsif match = matches_association(method_name, attribute, predicate)
         association, attribute = match.captures
         return match if where.types.include?(association_type_for(association, attribute))
       end
@@ -231,22 +216,15 @@ module MetaSearch
       method_name
     end
     
-    def matches_association(method_id, attribute, condition)
+    def matches_association(method_id, attribute, predicate)
       self.included_associations.each do |association|
         test_attribute = attribute.dup
         if test_attribute.gsub!(/^#{association}_/, '') &&
-          match = method_id.to_s.match("^(#{association})_(#{test_attribute})_(#{condition})=?$")
+          match = method_id.to_s.match("^(#{association})_(#{test_attribute})_(#{predicate})=?$")
           return match
         end
       end
       nil
-    end
-    
-    def matches_where_method(method_id)
-      if match = method_id.to_s.match(/^add_(.*)_where$/)
-        condition = match.captures.first
-        Where.get(condition) ? match : nil
-      end
     end
     
     def assign_attributes(opts)

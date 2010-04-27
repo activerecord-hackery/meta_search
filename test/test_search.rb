@@ -130,6 +130,32 @@ class TestSearch < Test::Unit::TestCase
         assert_contains @s.all, Company.where(:name => 'Initech').first
       end
     end
+    
+    context "where with_slackers_by_name_and_salary_range is sent an array with 3 values" do
+      setup do
+        @s.with_slackers_by_name_and_salary_range = ['Peter Gibbons', 90000, 110000]
+      end
+      
+      should "return 1 result" do
+        assert_equal 1, @s.all.size
+      end
+      
+      should "return a company named Initech" do
+        assert_contains @s.all, Company.where(:name => 'Initech').first
+      end
+    end
+    
+    should "raise an error when the wrong number of parameters would be supplied to a custom search" do
+      assert_raise ArgumentError do
+        @s.with_slackers_by_name_and_salary_range = ['Peter Gibbons', 90000]
+      end
+    end
+    
+    should "raise an error when a custom search method does not return a relation" do
+      assert_raise MetaSearch::NonRelationReturnedError do
+        @s.backwards_name_as_string = 'hcetinI'
+      end
+    end
   end
   
   context "A developer search" do
