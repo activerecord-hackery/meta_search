@@ -40,7 +40,7 @@ create an initializer (<tt>/config/initializers/meta_search.rb</tt>, for instanc
 like:
 
   MetaSearch::Where.add :between, :btw,
-    :condition => :in,
+    :predicate => :in,
     :types => [:integer, :float, :decimal, :date, :datetime, :timestamp, :time],
     :formatter => Proc.new {|param| Range.new(param.first, param.last)},
     :validator => Proc.new {|param|
