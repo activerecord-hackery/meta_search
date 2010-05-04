@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{meta_search}
-  s.version = "0.3.0"
+  s.version = "0.4.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-03-27}
+  s.date = %q{2010-05-04}
   s.description = %q{Adds a search method to your ActiveRecord models which returns an object to be used in form_for while constructing a search. Works with Rails 3 only.}
   s.email = %q{ernie@metautonomo.us}
   s.extra_rdoc_files = [
@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
     ".document",
      ".gitignore",
      ".gitmodules",
+     "Gemfile",
      "LICENSE",
      "README.rdoc",
      "Rakefile",
@@ -28,10 +29,9 @@ Gem::Specification.new do |s|
      "lib/meta_search/builder.rb",
      "lib/meta_search/exceptions.rb",
      "lib/meta_search/helpers/action_view.rb",
+     "lib/meta_search/method.rb",
      "lib/meta_search/model_compatibility.rb",
-     "lib/meta_search/railtie.rb",
      "lib/meta_search/searches/active_record.rb",
-     "lib/meta_search/searches/base.rb",
      "lib/meta_search/utility.rb",
      "lib/meta_search/where.rb",
      "meta_search.gemspec",
