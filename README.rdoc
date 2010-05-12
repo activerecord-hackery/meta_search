@@ -136,6 +136,32 @@ With a block, each check is yielded to your template, like so:
 
 Again, full documentation is in MetaSearch::Helpers::FormBuilder.
 
+=== Sorting columns
+
+If you'd like to sort by a specific column in your results (the attributes of the base model)
+then supply the <tt>meta_sort</tt> parameter in your form. The parameter takes the form
+<tt>column.direction</tt> where +column+ is the column name, and +direction+ is one of
+"asc" or "desc" for ascending or descending, respectively.
+
+Normally, you won't supply this parameter yourself, but instead will use the helper method
+<tt>sort_link</tt> in your views, like so:
+
+  <%= sort_link @search, :title %>
+  <%= sort_link @search, :created_at %>
+
+The <tt>@search</tt> object is the instance of MetaSearch::Builder you got back earlier from
+your controller. The other required parameter is the attribute name itself. Optionally,
+you can provide a string as a 3rd parameter to override the default link name, and then
+additional hashed for the +options+ and +html_options+ hashes for link_to.
+
+All <tt>sort_link</tt>-generated links will have the CSS class sort_link, as well as a
+directional class (ascending or descending) if the link is for a currently sorted column,
+for your styling enjoyment.
+
+This feature should hopefully help out those of you migrating from SearchLogic, and a thanks
+goes out to Ben Johnson for the HTML entities used for the up and down arrows, which provide
+a nice default look.
+
 === Including/excluding attributes and associations
 
 If you'd like to allow only certain associations or attributes to be searched, you can do

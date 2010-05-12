@@ -3,7 +3,18 @@ require 'action_controller'
 require 'action_view/test_case'
 
 class TestViewHelpers < ActionView::TestCase
-  tests ActionView::Helpers::FormHelper
+  tests MetaSearch::Helpers::FormHelper
+  include MetaSearch::Helpers::UrlHelper
+  
+  router = ActionDispatch::Routing::RouteSet.new
+  router.draw do |map|
+    resources :developers
+    resources :companies
+    resources :projects
+    resources :notes
+    match ':controller(/:action(/:id(.:format)))'
+  end
+  include router.url_helpers
   
   def setup
     @controller = Class.new do
@@ -15,7 +26,7 @@ class TestViewHelpers < ActionView::TestCase
       end
       
       def _router
-        ActionDispatch::Routing::RouteSet.new
+        @router ||= ActionDispatch::Routing::RouteSet.new
       end
     end
     @controller = @controller.new
@@ -26,7 +37,7 @@ class TestViewHelpers < ActionView::TestCase
       @s = Company.search
       @s.created_at_gte = [2001, 2, 3, 4, 5]
       @s.name_contains = "bacon"
-      fields_for :search, @s do |f|
+      form_for @s do |f|
         @f = f
       end
     end
@@ -47,7 +58,7 @@ class TestViewHelpers < ActionView::TestCase
   context "A form using mutiparameter_field with default size option" do
     setup do
       @s = Developer.search
-      fields_for :search, @s do |f|
+      form_for @s do |f|
         @f = f
       end
     end
@@ -67,7 +78,7 @@ class TestViewHelpers < ActionView::TestCase
   context "A form using check_boxes with three choices" do
     setup do
       @s = Company.search
-      fields_for :search, @s do |f|
+      form_for @s do |f|
         @f = f
       end
     end
@@ -107,7 +118,7 @@ class TestViewHelpers < ActionView::TestCase
     setup do
       @s = Company.search
       @s.id_in = [1, 3]
-      fields_for :search, @s do |f|
+      form_for @s do |f|
         @f = f
       end
     end
@@ -145,7 +156,7 @@ class TestViewHelpers < ActionView::TestCase
     context "A form using collection_check_boxes with companies" do
       setup do
         @s = Company.search
-        fields_for :search, @s do |f|
+        form_for @s do |f|
           @f = f
         end
       end
@@ -165,6 +176,29 @@ class TestViewHelpers < ActionView::TestCase
                          '<input id="search_id_in_2" name="search[id_in][]" type="checkbox" value="2" /></p>' +
                          '<p><label for="search_id_in_3">Mission Data</label> ' +
                          '<input id="search_id_in_3" name="search[id_in][]" type="checkbox" value="3" /></p>'
+      end
+    end
+    
+    context "A company search sorted by name" do
+      setup do
+        @s = Company.search
+        @s.meta_sort = 'name.asc'
+      end
+      
+      should "generate a sort link with an up arrow" do
+        assert_match /Name &#9650;/,
+                     sort_link(@s, :name, :controller => 'companies')
+      end
+      
+      context "with existing search options" do
+        setup do
+          @s.name_contains = 'a'
+        end
+        
+        should "maintain previous search options in its sort links" do
+          assert_match /search\[name_contains\]=a/,
+                       sort_link(@s, :name, :controller => 'companies')
+        end
       end
     end
   end

@@ -28,8 +28,11 @@ end
 
 require 'active_record'
 require 'action_view'
+require 'action_controller'
 require 'meta_search/searches/active_record'
-require 'meta_search/helpers/action_view'
+require 'meta_search/helpers'
 
 ActiveRecord::Base.send(:include, MetaSearch::Searches::ActiveRecord)
 ActionView::Helpers::FormBuilder.send(:include, MetaSearch::Helpers::FormBuilder)
+ActionController::Base.helper(MetaSearch::Helpers::UrlHelper)
+ActionController::Base.helper(MetaSearch::Helpers::FormHelper)

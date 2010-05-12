@@ -45,6 +45,28 @@ class TestSearch < Test::Unit::TestCase
       end
     end
     
+    context "sorted by name in ascending order" do
+      setup do
+        @s.meta_sort = 'name.asc'
+      end
+      
+      should "sort by name in ascending order" do
+        assert_equal Company.order('name asc').all,
+                     @s.all
+      end
+    end
+    
+    context "sorted by name in descending order" do
+      setup do
+        @s.meta_sort = 'name.desc'
+      end
+      
+      should "sort by name in descending order" do
+        assert_equal Company.order('name desc').all,
+                     @s.all
+      end
+    end
+    
     context "where name contains optical" do
       setup do
         @s.name_contains = 'optical'

@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-05-05}
+  s.date = %q{2010-05-11}
   s.description = %q{Adds a search method to your ActiveRecord models which returns an object to be used in form_for while constructing a search. Works with Rails 3 only.}
   s.email = %q{ernie@metautonomo.us}
   s.extra_rdoc_files = [
@@ -28,7 +28,10 @@ Gem::Specification.new do |s|
      "lib/meta_search.rb",
      "lib/meta_search/builder.rb",
      "lib/meta_search/exceptions.rb",
-     "lib/meta_search/helpers/action_view.rb",
+     "lib/meta_search/helpers.rb",
+     "lib/meta_search/helpers/form_builder.rb",
+     "lib/meta_search/helpers/form_helper.rb",
+     "lib/meta_search/helpers/url_helper.rb",
      "lib/meta_search/method.rb",
      "lib/meta_search/model_compatibility.rb",
      "lib/meta_search/searches/active_record.rb",
@@ -54,7 +57,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://metautonomo.us}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.6.1}
+  s.rubygems_version = %q{1.3.7}
   s.summary = %q{ActiveRecord 3 object-based searching.}
   s.test_files = [
     "test/fixtures/company.rb",
