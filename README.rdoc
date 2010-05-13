@@ -139,9 +139,10 @@ Again, full documentation is in MetaSearch::Helpers::FormBuilder.
 === Sorting columns
 
 If you'd like to sort by a specific column in your results (the attributes of the base model)
-then supply the <tt>meta_sort</tt> parameter in your form. The parameter takes the form
-<tt>column.direction</tt> where +column+ is the column name, and +direction+ is one of
-"asc" or "desc" for ascending or descending, respectively.
+or an association column then supply the <tt>meta_sort</tt> parameter in your form.
+The parameter takes the form <tt>column.direction</tt> where +column+ is the column name or
+underscore-separated association_column combination, and +direction+ is one of "asc" or "desc"
+for ascending or descending, respectively.
 
 Normally, you won't supply this parameter yourself, but instead will use the helper method
 <tt>sort_link</tt> in your views, like so:

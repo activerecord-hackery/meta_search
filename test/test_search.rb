@@ -189,23 +189,29 @@ class TestSearch < Test::Unit::TestCase
       assert_nil @s.column(:company_id)
     end
     
-    should "raise an error if we try to search on company_id" do
-      assert_raise NoMethodError do
-        @s.company_id_eq = 1
-      end
-    end
-    
     should "have an association named projects" do
       assert @s.association(:projects)
     end
     
-    should "not have an association named company" do
-      assert_nil @s.association(:company)
+    context "sorted by company name in ascending order" do
+      setup do
+        @s.meta_sort = 'company_name.asc'
+      end
+      
+      should "sort by company name in ascending order" do
+        assert_equal Developer.joins(:company).order('companies.name asc').all,
+                     @s.all
+      end
     end
     
-    should "raise an error if we try to search on company" do
-      assert_raise NoMethodError do
-        @s.company_name_eq = 'Initech'
+    context "sorted by company name in descending order" do
+      setup do
+        @s.meta_sort = 'company_name.desc'
+      end
+      
+      should "sort by company name in descending order" do
+        assert_equal Developer.joins(:company).order('companies.name desc').all,
+                     @s.all
       end
     end
     

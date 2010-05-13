@@ -4,5 +4,5 @@ class Developer < ActiveRecord::Base
   has_many :notes, :as => :notable
   
   attr_searchable :name, :salary
-  assoc_searchable :notes, :projects
+  assoc_searchable :notes, :projects, :company
 end

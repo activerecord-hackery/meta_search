@@ -178,26 +178,69 @@ class TestViewHelpers < ActionView::TestCase
                          '<input id="search_id_in_3" name="search[id_in][]" type="checkbox" value="3" /></p>'
       end
     end
+  end
+  
+  context "A company search" do
+    setup do
+      @s = Company.search
+    end
     
-    context "A company search sorted by name" do
+    context "sorted by name ascending" do
       setup do
-        @s = Company.search
         @s.meta_sort = 'name.asc'
       end
-      
-      should "generate a sort link with an up arrow" do
+    
+      should "generate a sort link with an up arrow for the sorted column" do
         assert_match /Name &#9650;/,
                      sort_link(@s, :name, :controller => 'companies')
       end
-      
+    
+      should "not generate a sort link with an up arrow for a non-sorted column" do
+        assert_no_match /Created at &#9650;/,
+                        sort_link(@s, :created_at, :controller => 'companies')
+      end
+    
       context "with existing search options" do
         setup do
           @s.name_contains = 'a'
         end
-        
+      
         should "maintain previous search options in its sort links" do
           assert_match /search\[name_contains\]=a/,
                        sort_link(@s, :name, :controller => 'companies')
+        end
+      end
+    end
+  end
+  
+  context "A developer search" do
+    setup do
+      @s = Developer.search
+    end
+    
+    context "sorted by company name descending" do
+      setup do
+        @s.meta_sort = 'company_name.desc'
+      end
+    
+      should "generate a sort link with a down arrow for the sorted column" do
+        assert_match /Company name &#9660;/,
+                     sort_link(@s, :company_name, :controller => 'developers')
+      end
+    
+      should "not generate a sort link with a down arrow for a non-sorted column" do
+        assert_no_match /Created at &#9660;/,
+                        sort_link(@s, :created_at, :controller => 'developers')
+      end
+    
+      context "with existing search options" do
+        setup do
+          @s.name_contains = 'a'
+        end
+      
+        should "maintain previous search options in its sort links" do
+          assert_match /search\[name_contains\]=a/,
+                       sort_link(@s, :company_name, :controller => 'companies')
         end
       end
     end

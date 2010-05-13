@@ -52,8 +52,7 @@ module MetaSearch
     # Return the column info for given association and column (if the association is not
     # excluded from search)
     def association_column(association, attr)
-      if self.includes_association?(association)
-        assoc = self.association(association)
+      if assoc = self.association(association)
         assoc.klass.columns_hash[attr.to_s] unless assoc.klass._metasearch_exclude_attributes.include?(attr.to_s)
       end
     end
@@ -125,12 +124,34 @@ module MetaSearch
         define_method(:meta_sort=) do |val|
           column, direction = val.split('.')
           direction ||= 'asc'
-          if ['asc','desc'].include?(direction) && attribute = @relation.table[column]
+          if ['asc','desc'].include?(direction) && attribute = get_attribute(column)
             search_attributes['meta_sort'] = val
             @relation = @relation.order(attribute.send(direction).to_sql)
           end
         end
       end
+    end
+    
+    def get_attribute(column)
+      base_attribute(column) || association_attribute(column)
+    end
+    
+    def base_attribute(column)
+      @relation.table[column]
+    end
+    
+    def association_attribute(association_and_column)
+      attribute = nil
+      included_associations.each do |association_name|
+        if (match = association_and_column.match(/^#{association_name}_(.*)$/)) &&
+          (column_name = match.captures.first) &&
+          association_column(association_name, column_name)
+          join = build_or_find_association(association_name)
+          relation = join.relation.is_a?(Array) ? join.relation.last : join.relation
+          attribute = relation.table[column_name]
+        end
+      end
+      attribute
     end
     
     def build_named_method(name)
