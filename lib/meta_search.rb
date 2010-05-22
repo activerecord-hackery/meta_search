@@ -5,6 +5,9 @@ module MetaSearch
   TIMES = [:datetime, :timestamp, :time]
   BOOLEANS = [:boolean]
   ALL_TYPES = NUMBERS + STRINGS + DATES + TIMES + BOOLEANS
+  
+  # Change this only if you know what you're doing. It's here for your protection.
+  MAX_JOIN_DEPTH = 5
 
   DEFAULT_WHERES = [
     ['equals', 'eq'],

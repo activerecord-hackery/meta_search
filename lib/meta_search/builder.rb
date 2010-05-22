@@ -4,6 +4,12 @@ require 'meta_search/where'
 require 'meta_search/utility'
 
 module MetaSearch
+  # Raised if you try to access a relation that's joining too many tables to itself.
+  # This is designed to prevent a malicious user from accessing something like
+  # :developers_company_developers_company_developers_company_developers_company_...,
+  # resulting in a query that could cause issues for your database server.
+  class JoinDepthError < StandardError; end
+  
   # Builder is the workhorse of MetaSearch -- it is the class that handles dynamically generating
   # methods based on a supplied model, and is what gets instantiated when you call your model's search
   # method. Builder doesn't generate any methods until they're needed, using method_missing to compare
@@ -22,7 +28,7 @@ module MetaSearch
     include ModelCompatibility
     include Utility
     
-    attr_reader :base, :search_attributes, :relation, :join_dependency
+    attr_reader :base, :search_attributes, :join_dependency
     delegate *RELATION_METHODS + [:to => :relation]
 
     # Initialize a new Builder. Requires a base model to wrap, and supports a couple of options
@@ -30,51 +36,68 @@ module MetaSearch
     def initialize(base, opts = {})
       @base = base
       @opts = opts
-      @associations = {}
       @join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@base, [], nil)
       @search_attributes = {}
       @relation = @base.scoped
     end
     
-    # Return the column info for the given model attribute (if not excluded as outlined above)
-    def column(attr)
-      @base.columns_hash[attr.to_s] if self.includes_attribute?(attr)
+    def relation
+      enforce_join_depth_limit!
+      @relation
     end
-    
-    # Return the association reflection for the named association (if not excluded as outlined
-    # above)
-    def association(association)
-       if self.includes_association?(association)
-        @associations[association.to_sym] ||= @base.reflect_on_association(association.to_sym)
+
+    def get_column(column, base = @base)
+      if base._metasearch_include_attributes.blank?
+        base.columns_hash[column.to_s] unless base._metasearch_exclude_attributes.include?(column.to_s)
+      else
+        base.columns_hash[column.to_s] if base._metasearch_include_attributes.include?(column.to_s)
       end
     end
     
-    # Return the column info for given association and column (if the association is not
-    # excluded from search)
-    def association_column(association, attr)
-      if assoc = self.association(association)
-        assoc.klass.columns_hash[attr.to_s] unless assoc.klass._metasearch_exclude_attributes.include?(attr.to_s)
+    def get_association(assoc, base = @base)
+      if base._metasearch_include_associations.blank?
+        base.reflect_on_association(assoc.to_sym) unless base._metasearch_exclude_associations.include?(assoc.to_s)
+      else
+        base.reflect_on_association(assoc.to_sym) if base._metasearch_include_associations.include?(assoc.to_s)
       end
     end
     
-    def included_attributes
-      @included_attributes ||= @base._metasearch_include_attributes.blank? ?
-        @base.column_names - @base._metasearch_exclude_attributes :
-        @base.column_names & @base._metasearch_include_attributes
+    def get_attribute(name, parent = @join_dependency.join_base)
+      attribute = nil
+      if get_column(name, parent.active_record)
+        if parent.is_a?(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
+          relation = parent.relation.is_a?(Array) ? parent.relation.last : parent.relation
+          attribute = relation.table[name]
+        else
+          attribute = @relation.table[name]
+        end
+      elsif (segments = name.to_s.split(/_/)).size > 1
+        remainder = []
+        found_assoc = nil
+        while remainder.unshift(segments.pop) && segments.size > 0 && !found_assoc do
+          if found_assoc = get_association(segments.join('_'), parent.active_record)
+            join = build_or_find_association(found_assoc.name, parent)
+            attribute = get_attribute(remainder.join('_'), join)
+          end
+        end
+      end
+      attribute
     end
     
-    def includes_attribute?(attr)
-      self.included_attributes.include?(attr.to_s)
+    def base_includes_association?(base, assoc)
+      if base._metasearch_include_associations.blank?
+        base.reflect_on_association(assoc.to_sym) unless base._metasearch_exclude_associations.include?(assoc.to_s)
+      else
+        base.reflect_on_association(assoc.to_sym) if base._metasearch_include_associations.include?(assoc.to_s)
+      end
     end
     
-    def included_associations
-      @included_associations ||= @base._metasearch_include_associations.blank? ?
-        @base.reflect_on_all_associations.map {|a| a.name.to_s} - @base._metasearch_exclude_associations :
-        @base.reflect_on_all_associations.map {|a| a.name.to_s} & @base._metasearch_include_associations
-    end
-    
-    def includes_association?(assoc)
-      self.included_associations.include?(assoc.to_s)
+    def base_includes_attribute?(base, attribute)
+      if base._metasearch_include_attributes.blank?
+        base.column_names.detect(attribute.to_s) unless base._metasearch_exclude_attributes.include?(attribute.to_s)
+      else
+        base.column_names.detect(attribute.to_s) if base._metasearch_include_attributes.include?(attribute.to_s)
+      end
     end
     
     # Build the search with the given search options. Options are in the form of a hash
@@ -106,10 +129,6 @@ module MetaSearch
         attribute, predicate = match.captures
         build_attribute_method(attribute, predicate)
         self.send(preferred_method_name(method_id), *args)
-      elsif match = matches_association_method(method_id)
-        association, attribute, predicate = match.captures
-        build_association_method(association, attribute, predicate)
-        self.send(preferred_method_name(method_id), *args)
       else
         super
       end
@@ -132,26 +151,20 @@ module MetaSearch
       end
     end
     
-    def get_attribute(column)
-      base_attribute(column) || association_attribute(column)
-    end
-    
-    def base_attribute(column)
-      @relation.table[column]
-    end
-    
-    def association_attribute(association_and_column)
-      attribute = nil
-      included_associations.each do |association_name|
-        if (match = association_and_column.match(/^#{association_name}_(.*)$/)) &&
-          (column_name = match.captures.first) &&
-          association_column(association_name, column_name)
-          join = build_or_find_association(association_name)
-          relation = join.relation.is_a?(Array) ? join.relation.last : join.relation
-          attribute = relation.table[column_name]
+    def column_type(name, base = @base)
+      type = nil
+      if column = get_column(name, base)
+        type = column.type
+      elsif (segments = name.split(/_/)).size > 1
+        remainder = []
+        found_assoc = nil
+        while remainder.unshift(segments.pop) && segments.size > 0 && !found_assoc do
+          if found_assoc = get_association(segments.join('_'), base)
+            type = column_type(remainder.join('_'), found_assoc.klass)
+          end
         end
       end
-      attribute
+      type
     end
     
     def build_named_method(name)
@@ -182,43 +195,37 @@ module MetaSearch
         end
       
         define_method("#{attribute}_#{predicate}=") do |val|
-          search_attributes["#{attribute}_#{predicate}"] = cast_attributes(type_for(attribute), val)
+          search_attributes["#{attribute}_#{predicate}"] = cast_attributes(column_type(attribute), val)
           where = Where.new(predicate)
           if where.validate(search_attributes["#{attribute}_#{predicate}"])
-            @relation = where.eval(@relation, @relation.table[attribute], search_attributes["#{attribute}_#{predicate}"])
+            arel_attribute = get_attribute(attribute)
+            @relation = where.eval(@relation, arel_attribute, search_attributes["#{attribute}_#{predicate}"])
           end
         end
       end
     end
     
-    def build_association_method(association, attribute, predicate)
-      singleton_class.instance_eval do        
-        define_method("#{association}_#{attribute}_#{predicate}") do
-          search_attributes["#{association}_#{attribute}_#{predicate}"]
-        end
-      
-        define_method("#{association}_#{attribute}_#{predicate}=") do |val|
-          search_attributes["#{association}_#{attribute}_#{predicate}"] = cast_attributes(association_type_for(association, attribute), val)
-          where = Where.new(predicate)
-          if where.validate(search_attributes["#{association}_#{attribute}_#{predicate}"])
-            join = build_or_find_association(association)
-            relation = join.relation.is_a?(Array) ? join.relation.last : join.relation
-            @relation = where.eval(@relation, relation.table[attribute], search_attributes["#{association}_#{attribute}_#{predicate}"])
-          end
-        end
-      end
-    end
-    
-    def build_or_find_association(association)
+    def build_or_find_association(association, parent = @join_dependency.join_base)
       found_association = @join_dependency.join_associations.detect do |assoc|
-        assoc.reflection.name == association.to_sym
+        assoc.reflection.name == association.to_sym &&
+        assoc.parent == parent
       end
       unless found_association
-        @relation = @relation.joins(association.to_sym)
-        @join_dependency.send(:build, association.to_sym, @join_dependency.join_base)
+        @join_dependency.send(:build, association, parent)
         found_association = @join_dependency.join_associations.last
+        @relation = @relation.joins(found_association)
       end
       found_association
+    end
+    
+    def enforce_join_depth_limit!
+      raise JoinDepthError, "Maximum join depth of #{MAX_JOIN_DEPTH} exceeded." if @join_dependency.join_associations.detect {|ja|
+        gauge_depth_of_join_association(ja) > MAX_JOIN_DEPTH
+      }
+    end
+    
+    def gauge_depth_of_join_association(ja)
+      1 + (ja.respond_to?(:parent) ? gauge_depth_of_join_association(ja.parent) : 0)
     end
     
     def matches_named_method(name)
@@ -232,7 +239,7 @@ module MetaSearch
       return nil unless method_name && where
       match = method_name.match("^(.*)_(#{where.name})=?$")
       attribute, predicate = match.captures
-      if where.types.include?(type_for(attribute))
+      if where.types.include?(column_type(attribute))
         return match
       end
       nil

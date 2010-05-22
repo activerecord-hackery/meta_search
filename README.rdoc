@@ -33,6 +33,34 @@ The default Where types are listed at MetaSearch::Where. Options for the search 
 
 == Advanced usage
 
+=== Multi-level associations
+
+MetaSearch will allow you traverse your associations in one form, generating the necessary
+joins along the way. If you have the following models...
+
+  class Company < ActiveRecord::Base
+    has_many :developers
+  end
+  
+  class Developer < ActiveRecord::Base
+    belongs_to :company
+    has_many :notes
+  end
+  
+...you can do this in your form to search your companies by developers with certain notes:
+
+  <%= f.text_field :developers_notes_note %>
+  
+You can travel forward and back through the associations, so this would also work (though
+be entirely pointless in this case):
+
+  <%= f.text_field :developers_notes_developer_company_name %>
+
+However, to prevent abuse, this is limited to associations of a total "depth" of 5 levels.
+This means that while starting from a Company model, as above, you could do
+Company -> :developers -> :notes -> :developer -> :company, which has gotten you right
+back where you started, but is 5 total tables.
+
 === Adding a new Where
 
 If none of the built-in search criteria work for you, you can add a new Where (or 5). To do so,

@@ -8,15 +8,15 @@ class TestSearch < Test::Unit::TestCase
     end
     
     should "have an association named developers" do
-      assert @s.association(:developers)
+      assert @s.get_association(:developers)
     end
     
     should "have a column named name" do
-      assert @s.column(:name)
+      assert @s.get_column(:name)
     end
       
     should "exclude the column named updated_at" do
-      assert_nil @s.column(:updated_at)
+      assert_nil @s.get_column(:updated_at)
     end
     
     should "raise an error if we try to search on updated_at" do
@@ -26,7 +26,7 @@ class TestSearch < Test::Unit::TestCase
     end
     
     should "exclude the association named notes" do
-      assert_nil @s.association(:notes)
+      assert_nil @s.get_association(:notes)
     end
     
     should "raise an error if we try to search on notes" do
@@ -36,7 +36,7 @@ class TestSearch < Test::Unit::TestCase
     end
     
     should "honor its associations' excluded attributes" do
-      assert_nil @s.association_column(:data_types, :str)
+      assert_nil @s.get_attribute(:data_types_str)
     end
     
     should "raise an error if we try to search data_types.str" do
@@ -139,6 +139,55 @@ class TestSearch < Test::Unit::TestCase
       end
     end
     
+    context "where developer note indicates he will crack yo skull through two associations" do
+      setup do
+        @s.developers_notes_note_equals = "Will show you what he's doing."
+      end
+      
+      should "return one result" do
+        assert_equal 1, @s.all.size
+      end
+      
+      should "return a company named Advanced Optical Solutions" do
+        assert_contains @s.all, Company.where(:name => 'Advanced Optical Solutions').first
+      end
+    
+      should "not return a company named Mission Data" do
+        assert_does_not_contain @s.all, Company.where(:name => "Mission Data").first
+      end
+    end
+    
+    context "where developer note indicates he will crack yo skull through four associations" do
+      setup do
+        @s.developers_company_developers_notes_note_equals = "Will show you what he's doing."
+      end
+      
+      should "return two results, one of which is a duplicate due to joins" do
+        assert_equal 2, @s.all.size
+        assert_equal 1, @s.all.uniq.size
+      end
+      
+      should "return a company named Advanced Optical Solutions" do
+        assert_contains @s.all, Company.where(:name => 'Advanced Optical Solutions').first
+      end
+    
+      should "not return a company named Mission Data" do
+        assert_does_not_contain @s.all, Company.where(:name => "Mission Data").first
+      end
+    end
+    
+    context "with a join more than five tables deep (including source table)" do
+      setup do
+        @s.developers_company_developers_company_developers_name_equals = "Ernie Miller"
+      end
+      
+      should "raise an error when the relation is accessed" do
+        assert_raise MetaSearch::JoinDepthError do
+          @s.all
+        end
+      end
+    end
+    
     context "where backwards name is hcetinI" do
       setup do
         @s.backwards_name = 'hcetinI'
@@ -186,11 +235,11 @@ class TestSearch < Test::Unit::TestCase
     end
     
     should "exclude the column named company_id" do
-      assert_nil @s.column(:company_id)
+      assert_nil @s.get_column(:company_id)
     end
     
     should "have an association named projects" do
-      assert @s.association(:projects)
+      assert @s.get_association(:projects)
     end
     
     context "sorted by company name in ascending order" do
