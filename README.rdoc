@@ -1,15 +1,17 @@
 = MetaSearch
 
-Extensible searching for your form_for enjoyment.
+MetaSearch is extensible searching for your form_for enjoyment. It “wraps” one of your ActiveRecord models, providing methods that allow you to build up search conditions against that model, and has a few extra form helpers to simplify sorting and supplying multiple parameters to your condition methods as well.
 
 == Getting Started
 
-This version of MetaSearch depends on some functionality I've added to Arel which
-has not yet been rolled into the official version. You can still try it out,
-though, by adding these lines to your Gemfile:
+In your Gemfile:
 
-  gem 'arel', :git => "git://github.com/ernie/arel.git"
-  gem 'meta_search', :git => "git://github.com/ernie/meta_search.git"
+  gem "meta_search"  # Last officially released gem
+  # gem "meta_search", :git => "git://github.com/ernie/meta_search.git" # Track git repo
+
+or, to install as a plugin:
+
+  rails plugin install git://github.com/ernie/meta_search.git
 
 In your controller:
 
@@ -215,6 +217,10 @@ Excluded attributes on a model will be honored across associations, so if an Art
 
 Then your call to <tt>Article.search</tt> will allow <tt>:comments_body_contains</tt>
 but not <tt>:comments_user_id_equals</tt> to be passed.
+
+== Reporting issues
+
+Please report any issues using {Lighthouse}[http://metautonomous.lighthouseapp.com/projects/53012-metasearch/]. Thanks in advance for helping me improve MetaSearch!
 
 == Copyright
 

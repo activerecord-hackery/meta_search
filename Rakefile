@@ -5,8 +5,8 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "meta_search"
-    gem.summary = %Q{ActiveRecord 3 object-based searching.}
-    gem.description = %Q{Adds a search method to your ActiveRecord models which returns an object to be used in form_for while constructing a search. Works with Rails 3 only.}
+    gem.summary = %Q{ActiveRecord 3 object-based searching for your form_for enjoyment.}
+    gem.description = %Q{Allows simple search forms to be created against an AR3 model and its associations, has useful view helpers for order links and multiparameter fields as well.}
     gem.email = "ernie@metautonomo.us"
     gem.homepage = "http://metautonomo.us"
     gem.authors = ["Ernie Miller"]
