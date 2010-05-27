@@ -9,7 +9,7 @@ module MetaSearch
   # :developers_company_developers_company_developers_company_developers_company_...,
   # resulting in a query that could cause issues for your database server.
   class JoinDepthError < StandardError; end
-  
+
   # Builder is the workhorse of MetaSearch -- it is the class that handles dynamically generating
   # methods based on a supplied model, and is what gets instantiated when you call your model's search
   # method. Builder doesn't generate any methods until they're needed, using method_missing to compare
@@ -27,20 +27,20 @@ module MetaSearch
   class Builder
     include ModelCompatibility
     include Utility
-    
+
     attr_reader :base, :search_attributes, :join_dependency
     delegate *RELATION_METHODS + [:to => :relation]
 
     # Initialize a new Builder. Requires a base model to wrap, and supports a couple of options
     # for how it will expose this model and its associations to your controllers/views.
-    def initialize(base, opts = {})
-      @base = base
+    def initialize(base_or_relation, opts = {})
+      @relation = base_or_relation.scoped
+      @base = @relation.klass
       @opts = opts
-      @join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@base, [], nil)
+      @join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@base, @relation.joins_values, nil)
       @search_attributes = {}
-      @relation = @base.scoped
     end
-    
+
     def relation
       enforce_join_depth_limit!
       @relation
@@ -53,7 +53,7 @@ module MetaSearch
         base.columns_hash[column.to_s] if base._metasearch_include_attributes.include?(column.to_s)
       end
     end
-    
+
     def get_association(assoc, base = @base)
       if base._metasearch_include_associations.blank?
         base.reflect_on_association(assoc.to_sym) unless base._metasearch_exclude_associations.include?(assoc.to_s)
@@ -61,7 +61,7 @@ module MetaSearch
         base.reflect_on_association(assoc.to_sym) if base._metasearch_include_associations.include?(assoc.to_s)
       end
     end
-    
+
     def get_attribute(name, parent = @join_dependency.join_base)
       attribute = nil
       if get_column(name, parent.active_record)
@@ -83,7 +83,7 @@ module MetaSearch
       end
       attribute
     end
-    
+
     def base_includes_association?(base, assoc)
       if base._metasearch_include_associations.blank?
         base.reflect_on_association(assoc.to_sym) unless base._metasearch_exclude_associations.include?(assoc.to_s)
@@ -91,7 +91,7 @@ module MetaSearch
         base.reflect_on_association(assoc.to_sym) if base._metasearch_include_associations.include?(assoc.to_s)
       end
     end
-    
+
     def base_includes_attribute?(base, attribute)
       if base._metasearch_include_attributes.blank?
         base.column_names.detect(attribute.to_s) unless base._metasearch_exclude_attributes.include?(attribute.to_s)
@@ -99,7 +99,7 @@ module MetaSearch
         base.column_names.detect(attribute.to_s) if base._metasearch_include_attributes.include?(attribute.to_s)
       end
     end
-    
+
     # Build the search with the given search options. Options are in the form of a hash
     # with keys matching the names creted by the Builder's "wheres" as outlined in
     # MetaSearch::Where
@@ -111,9 +111,9 @@ module MetaSearch
       assign_attributes(opts)
       self
     end
-    
+
     private
-    
+
     def method_missing(method_id, *args, &block)
       if method_id.to_s =~ /^meta_sort=?$/
         build_sort_method
@@ -133,13 +133,13 @@ module MetaSearch
         super
       end
     end
-    
+
     def build_sort_method
       singleton_class.instance_eval do
         define_method(:meta_sort) do
           search_attributes['meta_sort']
         end
-      
+
         define_method(:meta_sort=) do |val|
           column, direction = val.split('.')
           direction ||= 'asc'
@@ -150,7 +150,7 @@ module MetaSearch
         end
       end
     end
-    
+
     def column_type(name, base = @base)
       type = nil
       if column = get_column(name, base)
@@ -166,14 +166,14 @@ module MetaSearch
       end
       type
     end
-    
+
     def build_named_method(name)
       meth = @base._metasearch_methods[name]
       singleton_class.instance_eval do
         define_method(name) do
           search_attributes[name]
         end
-      
+
         define_method("#{name}=") do |val|
           search_attributes[name] = meth.cast_param(val)
           if meth.validate(search_attributes[name])
@@ -187,13 +187,13 @@ module MetaSearch
         end
       end
     end
-    
+
     def build_attribute_method(attribute, predicate)
       singleton_class.instance_eval do
         define_method("#{attribute}_#{predicate}") do
           search_attributes["#{attribute}_#{predicate}"]
         end
-      
+
         define_method("#{attribute}_#{predicate}=") do |val|
           search_attributes["#{attribute}_#{predicate}"] = cast_attributes(column_type(attribute), val)
           where = Where.new(predicate)
@@ -204,7 +204,7 @@ module MetaSearch
         end
       end
     end
-    
+
     def build_or_find_association(association, parent = @join_dependency.join_base)
       found_association = @join_dependency.join_associations.detect do |assoc|
         assoc.reflection.name == association.to_sym &&
@@ -217,22 +217,22 @@ module MetaSearch
       end
       found_association
     end
-    
+
     def enforce_join_depth_limit!
       raise JoinDepthError, "Maximum join depth of #{MAX_JOIN_DEPTH} exceeded." if @join_dependency.join_associations.detect {|ja|
         gauge_depth_of_join_association(ja) > MAX_JOIN_DEPTH
       }
     end
-    
+
     def gauge_depth_of_join_association(ja)
       1 + (ja.respond_to?(:parent) ? gauge_depth_of_join_association(ja.parent) : 0)
     end
-    
+
     def matches_named_method(name)
       method_name = name.to_s.sub(/\=$/, '')
       return method_name if @base._metasearch_methods.has_key?(method_name)
     end
-    
+
     def matches_attribute_method(method_id)
       method_name = preferred_method_name(method_id)
       where = Where.new(method_id) rescue nil
@@ -244,7 +244,7 @@ module MetaSearch
       end
       nil
     end
-    
+
     def matches_association_method(method_id)
       method_name = preferred_method_name(method_id)
       where = Where.new(method_id) rescue nil
@@ -260,7 +260,7 @@ module MetaSearch
       end
       nil
     end
-    
+
     def preferred_method_name(method_id)
       method_name = method_id.to_s
       where = Where.new(method_name) rescue nil
@@ -270,7 +270,7 @@ module MetaSearch
       end
       method_name
     end
-    
+
     def assign_attributes(opts)
       opts.each_pair do |k, v|
         self.send("#{k}=", v)
@@ -281,17 +281,17 @@ module MetaSearch
       column = self.column(attribute)
       column.type if column
     end
-    
+
     def class_for(attribute)
       column = self.column(attribute)
       column.klass if column
     end
-    
+
     def association_type_for(association, attribute)
       column = self.association_column(association, attribute)
       column.type if column
     end
-    
+
     def association_class_for(association, attribute)
       column = self.association_column(association, attribute)
       column.klass if column

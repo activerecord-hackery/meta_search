@@ -29,4 +29,13 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'meta_search'
 
 class Test::Unit::TestCase
+  def self.context_a_search_against(name, object, &block)
+    context "A search against #{name}" do
+      setup do
+        @s = object.search
+      end
+
+      merge_block(&block) if block_given?
+    end
+  end
 end

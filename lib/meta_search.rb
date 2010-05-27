@@ -5,7 +5,7 @@ module MetaSearch
   TIMES = [:datetime, :timestamp, :time]
   BOOLEANS = [:boolean]
   ALL_TYPES = NUMBERS + STRINGS + DATES + TIMES + BOOLEANS
-  
+
   # Change this only if you know what you're doing. It's here for your protection.
   MAX_JOIN_DEPTH = 5
 
@@ -25,8 +25,8 @@ module MetaSearch
     ['in', {:types => ALL_TYPES, :predicate => :in}],
     ['not_in', 'ni', 'not_in', {:types => ALL_TYPES, :predicate => :not_in}]
   ]
-  
-  RELATION_METHODS = [:joins, :includes, :all, :count, :to_sql, :paginate, :find_each, :first, :last, :each]
+
+  RELATION_METHODS = [:joins, :includes, :to_a, :all, :count, :to_sql, :paginate, :autojoin, :find_each, :first, :last, :each, :arel]
 end
 
 require 'active_record'
