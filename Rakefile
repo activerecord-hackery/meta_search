@@ -6,14 +6,19 @@ begin
   Jeweler::Tasks.new do |gem|
     gem.name = "meta_search"
     gem.summary = %Q{ActiveRecord 3 object-based searching for your form_for enjoyment.}
-    gem.description = %Q{Allows simple search forms to be created against an AR3 model and its associations, has useful view helpers for order links and multiparameter fields as well.}
+    gem.description = %Q{
+      Allows simple search forms to be created against an AR3 model
+      and its associations, has useful view helpers for sort links
+      and multiparameter fields as well.
+    }
     gem.email = "ernie@metautonomo.us"
-    gem.homepage = "http://metautonomo.us"
+    gem.homepage = "http://metautonomo.us/projects/metasearch/"
     gem.authors = ["Ernie Miller"]
     gem.add_development_dependency "shoulda"
-    gem.add_dependency "activerecord", ">= 3.0.0.beta1"
-    gem.add_dependency "activesupport", ">= 3.0.0.beta1"
-    gem.add_dependency "arel", ">= 0.3.1"
+    gem.add_dependency "activerecord", ">= 3.0.0.beta4"
+    gem.add_dependency "activesupport", ">= 3.0.0.beta4"
+    gem.add_dependency "actionpack", ">= 3.0.0.beta4"
+    gem.add_dependency "arel", ">= 0.4.0"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new
