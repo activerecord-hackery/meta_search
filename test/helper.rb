@@ -15,7 +15,7 @@ ActiveRecord::Base.establish_connection(
 )
 
 dep = defined?(ActiveSupport::Dependencies) ? ActiveSupport::Dependencies : ::Dependencies
-dep.load_paths.unshift FIXTURES_PATH
+dep.autoload_paths.unshift FIXTURES_PATH
 
 ActiveRecord::Base.silence do
   ActiveRecord::Migration.verbose = false
