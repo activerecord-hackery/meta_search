@@ -5,7 +5,7 @@ require 'action_view/test_case'
 class TestViewHelpers < ActionView::TestCase
   tests MetaSearch::Helpers::FormHelper
   include MetaSearch::Helpers::UrlHelper
-  
+
   router = ActionDispatch::Routing::RouteSet.new
   router.draw do |map|
     resources :developers
@@ -15,23 +15,23 @@ class TestViewHelpers < ActionView::TestCase
     match ':controller(/:action(/:id(.:format)))'
   end
   include router.url_helpers
-  
+
   def setup
     @controller = Class.new do
-      
+
       attr_reader :url_for_options
       def url_for(options)
         @url_for_options = options
         "http://www.example.com"
       end
-      
-      def _router
-        @router ||= ActionDispatch::Routing::RouteSet.new
+
+      def _routes
+        @routes ||= ActionDispatch::Routing::RouteSet.new
       end
     end
     @controller = @controller.new
   end
-  
+
   context "A previously-filled search form" do
     setup do
       @s = Company.search
@@ -54,7 +54,7 @@ class TestViewHelpers < ActionView::TestCase
                         @f.text_field(:name_contains)
     end
   end
-  
+
   context "A form using mutiparameter_field with default size option" do
     setup do
       @s = Developer.search
@@ -62,9 +62,9 @@ class TestViewHelpers < ActionView::TestCase
         @f = f
       end
     end
-    
+
     should "apply proper cast and default size attribute to text fields" do
-      html = @f.multiparameter_field :salary_in, 
+      html = @f.multiparameter_field :salary_in,
              {:field_type => :text_field, :type_cast => 'i'},
              {:field_type => :text_field, :type_cast => 'i'}, :size => 10
       assert_dom_equal '<input id="search_salary_in(1i)" name="search[salary_in(1i)]" ' +
@@ -74,7 +74,7 @@ class TestViewHelpers < ActionView::TestCase
                        html
     end
   end
-  
+
   context "A form using check_boxes with three choices" do
     setup do
       @s = Company.search
@@ -82,11 +82,11 @@ class TestViewHelpers < ActionView::TestCase
         @f = f
       end
     end
-    
+
     should "return an array of check boxes without a block" do
       assert @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]).all?{|c| c.is_a?(MetaSearch::Check)}
     end
-    
+
     should "generate the expected HTML with a block" do
       expected = <<-EXPECTED
 <p>
@@ -113,7 +113,7 @@ class TestViewHelpers < ActionView::TestCase
       ERB
     end
   end
-  
+
   context "A form using check_boxes with three choices and a previous selection" do
     setup do
       @s = Company.search
@@ -122,11 +122,11 @@ class TestViewHelpers < ActionView::TestCase
         @f = f
       end
     end
-    
+
     should "return an array of check boxes without a block" do
       assert @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]).all?{|c| c.is_a?(MetaSearch::Check)}
     end
-    
+
     should "generate the expected HTML with a block" do
       expected = <<-EXPECTED
 <p>
@@ -152,7 +152,7 @@ class TestViewHelpers < ActionView::TestCase
 <% end -%>
                        ERB
     end
-    
+
     context "A form using collection_check_boxes with companies" do
       setup do
         @s = Company.search
@@ -160,11 +160,11 @@ class TestViewHelpers < ActionView::TestCase
           @f = f
         end
       end
-      
+
       should "return an array of check boxes without a block" do
        assert @f.collection_check_boxes(:id_in, Company.all, :id, :name).all?{|c| c.is_a?(MetaSearch::Check)}
       end
-      
+
       should "generate the expected HTML with a block" do
         @f.collection_check_boxes(:id_in, Company.all, :id, :name) do |c|
           concat render :to => :string, :inline => "<p><%= c.label %> <%= c.box %></p>", :locals => {:c => c}
@@ -179,32 +179,32 @@ class TestViewHelpers < ActionView::TestCase
       end
     end
   end
-  
+
   context "A company search" do
     setup do
       @s = Company.search
     end
-    
+
     context "sorted by name ascending" do
       setup do
         @s.meta_sort = 'name.asc'
       end
-    
+
       should "generate a sort link with an up arrow for the sorted column" do
         assert_match /Name &#9650;/,
                      sort_link(@s, :name, :controller => 'companies')
       end
-    
+
       should "not generate a sort link with an up arrow for a non-sorted column" do
         assert_no_match /Created at &#9650;/,
                         sort_link(@s, :created_at, :controller => 'companies')
       end
-    
+
       context "with existing search options" do
         setup do
           @s.name_contains = 'a'
         end
-      
+
         should "maintain previous search options in its sort links" do
           assert_match /search\[name_contains\]=a/,
                        sort_link(@s, :name, :controller => 'companies')
@@ -212,32 +212,32 @@ class TestViewHelpers < ActionView::TestCase
       end
     end
   end
-  
+
   context "A developer search" do
     setup do
       @s = Developer.search
     end
-    
+
     context "sorted by company name descending" do
       setup do
         @s.meta_sort = 'company_name.desc'
       end
-    
+
       should "generate a sort link with a down arrow for the sorted column" do
         assert_match /Company name &#9660;/,
                      sort_link(@s, :company_name, :controller => 'developers')
       end
-    
+
       should "not generate a sort link with a down arrow for a non-sorted column" do
         assert_no_match /Created at &#9660;/,
                         sort_link(@s, :created_at, :controller => 'developers')
       end
-    
+
       context "with existing search options" do
         setup do
           @s.name_contains = 'a'
         end
-      
+
         should "maintain previous search options in its sort links" do
           assert_match /search\[name_contains\]=a/,
                        sort_link(@s, :company_name, :controller => 'companies')
