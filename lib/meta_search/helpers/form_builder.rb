@@ -2,15 +2,11 @@ require 'action_view'
 require 'action_view/template'
 module MetaSearch
   Check = Struct.new(:box, :label)
-  
+
   module Helpers
     module FormBuilder
       extend ActiveSupport::Concern
-      
-      included do
-        self.field_helpers += ['multiparameter_field', 'check_boxes', 'collection_check_boxes']
-      end
-    
+
       # Like other form_for field methods (text_field, hidden_field, password_field) etc,
       # but takes a list of hashes between the +method+ parameter and the trailing option hash,
       # if any, to specify a number of fields to create in multiparameter fashion.
@@ -55,7 +51,7 @@ module MetaSearch
         end
         html
       end
-    
+
       # Behaves almost exactly like the select method, but instead of generating a select tag,
       # generates <tt>MetaSearch::Check</tt>s. These consist of two attributes, +box+ and +label+,
       # which are (unsurprisingly) the HTML for the check box and the label. Called without a block,
@@ -107,7 +103,7 @@ module MetaSearch
         end
         collection_check_boxes(method, choices, :last, :first, options, &block)
       end
-    
+
       # Just like +check_boxes+, but this time you can pass in a collection, value, and text method,
       # as with collection_select.
       #
@@ -139,9 +135,9 @@ module MetaSearch
         end
         check_boxes unless block_given?
       end
-    
+
       private
-    
+
       # If the last element of the arguments to multiparameter_field has no :field_type
       # key, we assume it's got some defaults to be used in the other hashes.
       def has_multiparameter_defaults?(args)
