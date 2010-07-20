@@ -562,4 +562,23 @@ class TestSearch < Test::Unit::TestCase
       end
     end
   end
+
+  context_a_search_against "a relation derived from a joined association",
+                           Company.where(:name => "Initech").first.developers do
+    should "not raise an error" do
+      assert_nothing_raised do
+        @s.all
+      end
+    end
+
+    should "return all developers for that company without conditions" do
+      assert_equal Company.where(:name => 'Initech').first.developers.all, @s.all
+    end
+
+    should "allow conditions on the search" do
+      @s.name_equals = 'Peter Gibbons'
+      assert_equal Developer.where(:name => 'Peter Gibbons').first,
+                   @s.first
+    end
+  end
 end
