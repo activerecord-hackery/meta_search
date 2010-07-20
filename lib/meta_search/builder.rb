@@ -37,7 +37,7 @@ module MetaSearch
       @relation = base_or_relation.scoped
       @base = @relation.klass
       @opts = opts
-      @join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@base, @relation.joins_values, nil)
+      @join_dependency = build_join_dependency
       @search_attributes = {}
     end
 
@@ -132,6 +132,45 @@ module MetaSearch
       else
         super
       end
+    end
+
+    def build_join_dependency
+      joins = @relation.joins_values.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
+
+      association_joins = joins.select do |j|
+        [Hash, Array, Symbol].include?(j.class) && !array_of_strings?(j)
+      end
+
+      stashed_association_joins = joins.select do |j|
+        j.is_a?(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
+      end
+
+      non_association_joins = (joins - association_joins - stashed_association_joins)
+      custom_joins = custom_join_sql(*non_association_joins)
+
+      ActiveRecord::Associations::ClassMethods::JoinDependency.new(@base, association_joins, custom_joins)
+    end
+
+    def custom_join_sql(*joins)
+      arel = @relation.table
+      joins.each do |join|
+        next if join.blank?
+
+        case join
+        when Hash, Array, Symbol
+          if array_of_strings?(join)
+            join_string = join.join(' ')
+            arel = arel.join(join_string)
+          end
+        else
+          arel = arel.join(join)
+        end
+      end
+      arel.joins(arel)
+    end
+
+    def array_of_strings?(o)
+      o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
     end
 
     def build_sort_method

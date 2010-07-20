@@ -581,4 +581,23 @@ class TestSearch < Test::Unit::TestCase
                    @s.first
     end
   end
+
+  context_a_search_against "a relation derived from a joined HM:T association",
+                           Company.where(:name => "Initech").first.developer_notes do
+    should "not raise an error" do
+      assert_nothing_raised do
+        @s.all
+      end
+    end
+
+    should "return all developer notes for that company without conditions" do
+      assert_equal Company.where(:name => 'Initech').first.developer_notes.all, @s.all
+    end
+
+    should "allow conditions on the search" do
+      @s.note_equals = 'A straight shooter with upper management written all over him.'
+      assert_equal Note.where(:note => 'A straight shooter with upper management written all over him.').first,
+                   @s.first
+    end
+  end
 end
