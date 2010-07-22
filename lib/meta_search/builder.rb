@@ -234,8 +234,8 @@ module MetaSearch
         end
 
         define_method("#{attribute}_#{predicate}=") do |val|
-          search_attributes["#{attribute}_#{predicate}"] = cast_attributes(column_type(attribute), val)
           where = Where.new(predicate)
+          search_attributes["#{attribute}_#{predicate}"] = cast_attributes(where.cast || column_type(attribute), val)
           if where.validate(search_attributes["#{attribute}_#{predicate}"])
             arel_attribute = get_attribute(attribute)
             @relation = where.eval(@relation, arel_attribute, search_attributes["#{attribute}_#{predicate}"])

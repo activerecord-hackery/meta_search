@@ -3,15 +3,15 @@ require 'meta_search/exceptions'
 module MetaSearch
   module Utility #:nodoc:
     private
-    
+
     def array_of_arrays?(vals)
       vals.is_a?(Array) && vals.first.is_a?(Array)
     end
-    
+
     def array_of_dates?(vals)
       vals.is_a?(Array) && vals.first.respond_to?(:to_time)
     end
-    
+
     def cast_attributes(type, vals)
       if array_of_arrays?(vals)
         vals.map! {|v| cast_attributes(type, v)}
@@ -29,7 +29,7 @@ module MetaSearch
         val.respond_to?(:to_s) ? val.to_s : String.new(val)
       when *DATES
         if val.respond_to?(:to_date)
-          val.to_date
+          val.to_date rescue nil
         else
           y, m, d = *[val].flatten
           m ||= 1
@@ -38,7 +38,7 @@ module MetaSearch
         end
       when *TIMES
         if val.respond_to?(:to_time)
-          val.to_time
+          val.to_time rescue nil
         else
           y, m, d, hh, mm, ss = *[val].flatten
           Time.zone.local(y, m, d, hh, mm, ss) rescue nil
@@ -55,7 +55,7 @@ module MetaSearch
         raise TypeCastError, "Unable to cast columns of type #{type}"
       end
     end
-    
+
     def collapse_multiparameter_options(opts)
       opts.keys.each do |k|
         if k.include?("(")
@@ -73,11 +73,11 @@ module MetaSearch
       end
       opts
     end
-    
+
     def quote_table_name(name)
       ActiveRecord::Base.connection.quote_table_name(name)
     end
-    
+
     def quote_column_name(name)
       ActiveRecord::Base.connection.quote_column_name(name)
     end

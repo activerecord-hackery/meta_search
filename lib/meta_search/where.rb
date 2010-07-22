@@ -52,7 +52,7 @@ module MetaSearch
   #
   # will match articles authored by Jimmy, Bobby, or Freddy, but not Winifred.
   class Where
-    attr_reader :name, :aliases, :types, :predicate, :formatter, :validator
+    attr_reader :name, :aliases, :types, :cast, :predicate, :formatter, :validator
     def initialize(where)
       if [String,Symbol].include?(where.class)
         where = Where.get(where) or raise ArgumentError("A where could not be instantiated for the argument #{where}")
@@ -60,26 +60,27 @@ module MetaSearch
       @name = where[:name]
       @aliases = where[:aliases]
       @types = where[:types]
+      @cast = where[:cast]
       @predicate = where[:predicate]
       @validator = where[:validator]
       @formatter = where[:formatter]
       @splat_param = where[:splat_param]
     end
-    
+
     def splat_param?
       !!@splat_param
     end
-    
+
     # Format a parameter for searching using the Where's defined formatter.
     def format_param(param)
       formatter.call(param)
     end
-    
+
     # Validate the parameter for use in a search using the Where's defined validator.
     def validate(param)
       validator.call(param)
     end
-    
+
     # Evaluate the Where for the given relation, attribute, and parameter(s)
     def eval(relation, attribute, param)
       if splat_param?
@@ -88,19 +89,19 @@ module MetaSearch
         relation.where(attribute.send(predicate, format_param(param)))
       end
     end
-    
+
     class << self
       # At application initialization, you can add additional custom Wheres to the mix.
       # in your application's <tt>config/initializers/meta_search.rb</tt>, place lines
       # like this:
       #
-      # MetaSearch::Where.add :between, :btw,
-      #   :predicate => :in,
-      #   :types => [:integer, :float, :decimal, :date, :datetime, :timestamp, :time],
-      #   :formatter => Proc.new {|param| Range.new(param.first, param.last)},
-      #   :validator => Proc.new {|param|
-      #     param.is_a?(Array) && !(param[0].blank? || param[1].blank?)
-      #   }
+      #   MetaSearch::Where.add :between, :btw,
+      #     :predicate => :in,
+      #     :types => [:integer, :float, :decimal, :date, :datetime, :timestamp, :time],
+      #     :formatter => Proc.new {|param| Range.new(param.first, param.last)},
+      #     :validator => Proc.new {|param|
+      #       param.is_a?(Array) && !(param[0].blank? || param[1].blank?)
+      #     }
       #
       # The first options are all names for the where. Well, the first is a name, the rest
       # are aliases, really. They will determine the suffix you will use to access your Where.
@@ -133,16 +134,33 @@ module MetaSearch
       # to be splatted (converted to an argument list). This is not normally useful and defaults to
       # false, but is used when automatically creating compound Wheres (*_any, *_all) so that the
       # Arel attribute method gets the correct parameter list.
+      #
+      # <tt>cast</tt> will override the normal cast of the parameter when using this Where
+      # condition. Normally, the value supplied to a condition is cast to the type of the column
+      # it's being compared against. In cases where this isn't desirable, because the value you
+      # intend to accept isn't the same kind of data you'll be comparing against, you can override
+      # that cast here. For example, this is a Where that you can use with a check_box to allow
+      # searching for records with a blank column. It's important to always cast to integer here,
+      # as otherwise the default checked check_box value, "1", would cast to an invalid date when
+      # searching against date columns, and fall back to nil, making your check_box do nothing:
+      #
+      #   MetaSearch::Where.add :is_blank,
+      #     :predicate => :in,
+      #     :cast => :integer,
+      #     :formatter => Proc.new {|param| [nil, '']},
+      #     :validator => Proc.new {|param|
+      #       !param.zero?
+      #     }
       def add(*args)
         where = create_where_from_args(*args)
         create_where_compounds_for(where)
       end
-      
+
       # Returns the complete array of Wheres
       def all
         @@wheres
       end
-      
+
       # Get the where matching a method or predicate.
       def get(method_id_or_predicate)
         return nil unless where_key = @@wheres.keys.
@@ -152,7 +170,7 @@ module MetaSearch
         where = @@wheres[where] if where.is_a?(String)
         where
       end
-      
+
       # Set the wheres to their default values, removing any customized settings.
       def initialize_wheres
         @@wheres = {}
@@ -160,9 +178,9 @@ module MetaSearch
           add(*where)
         end
       end
-      
+
       private
-      
+
       # "Creates" the Where by adding it (and its aliases) to the current hash of wheres. It then
       # instantiates a Where and returns it for use.
       def create_where_from_args(*args)
@@ -172,6 +190,7 @@ module MetaSearch
         opts[:name] ||= args.first
         opts[:types] ||= ALL_TYPES
         opts[:types] = [opts[:types]].flatten
+        opts[:cast] = opts[:cast]
         opts[:predicate] ||= :eq
         opts[:splat_param] ||= false
         opts[:formatter] ||= Proc.new {|param| param}
@@ -201,7 +220,7 @@ module MetaSearch
         end
         new(opts[:name])
       end
-      
+
       # Takes the provided +where+ param and derives two additional Wheres from it, with the
       # name appended by _any/_all. These will use Arel's grouped predicate methods (matching
       # the same naming convention) to be invoked instead, with a list of possible/required
@@ -227,6 +246,6 @@ module MetaSearch
       end
     end
   end
-  
+
   Where.initialize_wheres
 end
