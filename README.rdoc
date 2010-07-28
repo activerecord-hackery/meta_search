@@ -231,9 +231,14 @@ Excluded attributes on a model will be honored across associations, so if an Art
 Then your call to <tt>Article.search</tt> will allow <tt>:comments_body_contains</tt>
 but not <tt>:comments_user_id_equals</tt> to be passed.
 
-== Reporting issues
+== Contributions
 
-Please report any issues using {Lighthouse}[http://metautonomous.lighthouseapp.com/projects/53012-metasearch/]. Thanks in advance for helping me improve MetaSearch!
+There are several ways you can help MetaSearch continue to improve.
+
+* Use MetaSearch in your real-world projects and {submit bug reports or feature suggestions}[http://metautonomous.lighthouseapp.com/projects/53012-metasearch/].
+* Better yet, if you’re so inclined, fix the issue yourself and submit a patch! Or you can {fork the project on GitHub}[http://github.com/ernie/meta_search] and send me a pull request (please include tests!)
+* If you like MetaSearch, spread the word. More users == more eyes on code == more bugs getting found == more bugs getting fixed (hopefully!)
+* Lastly, if MetaSearch has saved you hours of development time on your latest Rails gig, and you’re feeling magnanimous, please consider {making a donation}[http://pledgie.com/campaigns/9647] to the project. I have spent hours of my personal time coding and supporting MetaSearch, and your donation would go a great way toward justifying that time spent to my loving wife. :)
 
 == Copyright
 
