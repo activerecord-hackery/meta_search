@@ -10,7 +10,7 @@ module MetaSearch
   MAX_JOIN_DEPTH = 5
 
   DEFAULT_WHERES = [
-    ['equals', 'eq'],
+    ['equals', 'eq', {:validator => Proc.new {|param| !param.blank? || (param == false)}}],
     ['does_not_equal', 'ne', 'not_eq', {:types => ALL_TYPES, :predicate => :not_eq}],
     ['contains', 'like', 'matches', {:types => STRINGS, :predicate => :matches, :formatter => '"%#{param}%"'}],
     ['does_not_contain', 'nlike', 'not_matches', {:types => STRINGS, :predicate => :not_matches, :formatter => '"%#{param}%"'}],
@@ -23,7 +23,11 @@ module MetaSearch
     ['greater_than_or_equal_to', 'gte', 'gteq', {:types => (NUMBERS + DATES + TIMES), :predicate => :gteq}],
     ['less_than_or_equal_to', 'lte', 'lteq', {:types => (NUMBERS + DATES + TIMES), :predicate => :lteq}],
     ['in', {:types => ALL_TYPES, :predicate => :in}],
-    ['not_in', 'ni', 'not_in', {:types => ALL_TYPES, :predicate => :not_in}]
+    ['not_in', 'ni', 'not_in', {:types => ALL_TYPES, :predicate => :not_in}],
+    ['is_true', {:types => BOOLEANS, :skip_compounds => true}],
+    ['is_false', {:types => BOOLEANS, :skip_compounds => true, :formatter => Proc.new {|param| !param}}],
+    ['is_present', {:types => (ALL_TYPES - BOOLEANS), :predicate => :not_eq_all, :splat_param => true, :skip_compounds => true, :cast => :boolean, :formatter => Proc.new {|param| [nil, '']}}],
+    ['is_blank', {:types => (ALL_TYPES - BOOLEANS), :predicate => :eq_any, :splat_param => true, :skip_compounds => true, :cast => :boolean, :formatter => Proc.new {|param| [nil, '']}}]
   ]
 
   RELATION_METHODS = [:joins, :includes, :to_a, :all, :count, :to_sql, :paginate, :autojoin, :find_each, :first, :last, :each, :arel]

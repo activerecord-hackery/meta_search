@@ -398,6 +398,48 @@ class TestSearch < Test::Unit::TestCase
         end
       end
 
+      context "where boolean column is_true" do
+        setup do
+          @s.bln_is_true = true
+        end
+
+        should "return five results" do
+          assert_equal 5, @s.all.size
+        end
+
+        should "contain no results with a false boolean column" do
+          assert_does_not_contain @s.all.collect {|r| r.bln}, false
+        end
+      end
+
+      context "where boolean column equals false" do
+        setup do
+          @s.bln_equals = false
+        end
+
+        should "return four results" do
+          assert_equal 4, @s.all.size
+        end
+
+        should "contain no results with a true boolean column" do
+          assert_does_not_contain @s.all.collect {|r| r.bln}, true
+        end
+      end
+
+      context "where boolean column is_false" do
+        setup do
+          @s.bln_is_false = true
+        end
+
+        should "return four results" do
+          assert_equal 4, @s.all.size
+        end
+
+        should "contain no results with a true boolean column" do
+          assert_does_not_contain @s.all.collect {|r| r.bln}, true
+        end
+      end
+
       context "where date column is Christmas 2009 by array" do
         setup do
           @s.dat_equals = [2009, 12, 25]
@@ -598,6 +640,39 @@ class TestSearch < Test::Unit::TestCase
       @s.note_equals = 'A straight shooter with upper management written all over him.'
       assert_equal Note.where(:note => 'A straight shooter with upper management written all over him.').first,
                    @s.first
+    end
+  end
+
+  [{:name => 'Project', :object => Project},
+   {:name => 'Project as a Relation', :object => Project.scoped}].each do |object|
+    context_a_search_against object[:name], object[:object] do
+      context "where name is present" do
+        setup do
+          @s.name_is_present = true
+        end
+
+        should "return 5 results" do
+          assert_equal 5, @s.all.size
+        end
+
+        should "contain no results with a blank name column" do
+          assert_equal 0, @s.all.select {|r| r.name.blank?}.size
+        end
+      end
+
+      context "where name is blank" do
+        setup do
+          @s.name_is_blank = true
+        end
+
+        should "return 5 results" do
+          assert_equal 2, @s.all.size
+        end
+
+        should "contain no results with a present name column" do
+          assert_equal 0, @s.all.select {|r| r.name.present?}.size
+        end
+      end
     end
   end
 end

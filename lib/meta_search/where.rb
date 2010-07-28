@@ -32,6 +32,16 @@ module MetaSearch
   # * _less_than_ (alias: _lt_) - Less than.
   # * _less_than_or_equal_to_ (aliases: _lte_, _lteq_) - Less than or equal to.
   #
+  # === Booleans
+  #
+  # * _is_true_ - Is true. Useful for a checkbox like "only show admin users".
+  # * _is_false_ - The complement of _is_true_.
+  #
+  # === Non-boolean data types
+  #
+  # * _is_present_ - As with _is_true_, useful with a checkbox. Not NULL or the empty string.
+  # * _is_blank_ - Returns records with a value of NULL or the empty string in the column.
+  #
   # So, given a model like this...
   #
   #   class Article < ActiveRecord::Base
@@ -65,10 +75,15 @@ module MetaSearch
       @validator = where[:validator]
       @formatter = where[:formatter]
       @splat_param = where[:splat_param]
+      @skip_compounds = where[:skip_compounds]
     end
 
     def splat_param?
       !!@splat_param
+    end
+
+    def skip_compounds?
+      !!@skip_compounds
     end
 
     # Format a parameter for searching using the Where's defined formatter.
@@ -135,25 +150,19 @@ module MetaSearch
       # false, but is used when automatically creating compound Wheres (*_any, *_all) so that the
       # Arel attribute method gets the correct parameter list.
       #
+      # <tt>skip_compounds</tt> will prevent creation of compound condition methods (ending in
+      # _any_ or _all_) for situations where they wouldn't make sense, such as the built-in
+      # conditions <tt>is_true</tt> and <tt>is_false</tt>.
+      #
       # <tt>cast</tt> will override the normal cast of the parameter when using this Where
       # condition. Normally, the value supplied to a condition is cast to the type of the column
       # it's being compared against. In cases where this isn't desirable, because the value you
       # intend to accept isn't the same kind of data you'll be comparing against, you can override
-      # that cast here. For example, this is a Where that you can use with a check_box to allow
-      # searching for records with a blank column. It's important to always cast to integer here,
-      # as otherwise the default checked check_box value, "1", would cast to an invalid date when
-      # searching against date columns, and fall back to nil, making your check_box do nothing:
-      #
-      #   MetaSearch::Where.add :is_blank,
-      #     :predicate => :in,
-      #     :cast => :integer,
-      #     :formatter => Proc.new {|param| [nil, '']},
-      #     :validator => Proc.new {|param|
-      #       !param.zero?
-      #     }
+      # that cast here, using one of the standard DB type symbols such as :integer, :string, :boolean
+      # and so on.
       def add(*args)
         where = create_where_from_args(*args)
-        create_where_compounds_for(where)
+        create_where_compounds_for(where) unless where.skip_compounds?
       end
 
       # Returns the complete array of Wheres
@@ -193,6 +202,7 @@ module MetaSearch
         opts[:cast] = opts[:cast]
         opts[:predicate] ||= :eq
         opts[:splat_param] ||= false
+        opts[:skip_compounds] ||= false
         opts[:formatter] ||= Proc.new {|param| param}
         if opts[:formatter].is_a?(String)
           formatter = opts[:formatter]
