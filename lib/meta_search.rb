@@ -30,7 +30,9 @@ module MetaSearch
     ['is_blank', {:types => (ALL_TYPES - BOOLEANS), :predicate => :eq_any, :splat_param => true, :skip_compounds => true, :cast => :boolean, :formatter => Proc.new {|param| [nil, '']}}]
   ]
 
-  RELATION_METHODS = [:joins, :includes, :to_a, :all, :count, :to_sql, :paginate, :autojoin, :find_each, :first, :last, :each, :arel]
+  RELATION_METHODS = [:joins, :includes, :select, :order, :where, :having,
+                      :to_a, :all, :count, :to_sql, :debug_sql, :paginate,
+                      :find_each, :first, :last, :each, :arel]
 end
 
 require 'active_record'

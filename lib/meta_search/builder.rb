@@ -28,7 +28,7 @@ module MetaSearch
     include ModelCompatibility
     include Utility
 
-    attr_reader :base, :search_attributes, :join_dependency
+    attr_reader :base, :search_attributes, :join_dependency, :errors
     delegate *RELATION_METHODS + [:to => :relation]
 
     # Initialize a new Builder. Requires a base model to wrap, and supports a couple of options
@@ -39,6 +39,7 @@ module MetaSearch
       @opts = opts
       @join_dependency = build_join_dependency
       @search_attributes = {}
+      @errors = ActiveModel::Errors.new(self)
     end
 
     def relation
@@ -110,6 +111,22 @@ module MetaSearch
       opts = collapse_multiparameter_options(opts)
       assign_attributes(opts)
       self
+    end
+
+    def respond_to?(method_name)
+      method_name = method_name.to_s
+      if RELATION_METHODS.map(&:to_s).detect(method_name)
+        true
+      elsif method_name.match(/^meta_sort=?$/)
+        true
+      elsif match = method_name.match(/^(.*)\(([0-9]+).*\)$/)
+        method_name, index = match.captures
+        return true if respond_to?(method_name)
+      elsif matches_named_method(method_name) || matches_attribute_method(method_name)
+        true
+      else
+        super
+      end
     end
 
     private
