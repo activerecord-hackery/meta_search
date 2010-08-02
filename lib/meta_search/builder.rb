@@ -114,6 +114,9 @@ module MetaSearch
     end
 
     def respond_to?(method_name)
+      return true if super # Hopefully we've already defined the method.
+
+      # Curses! Looks like we'll need to do this the hard way.
       method_name = method_name.to_s
       if RELATION_METHODS.map(&:to_s).detect(method_name)
         true
@@ -125,7 +128,7 @@ module MetaSearch
       elsif matches_named_method(method_name) || matches_attribute_method(method_name)
         true
       else
-        super
+        false
       end
     end
 
