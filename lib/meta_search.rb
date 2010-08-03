@@ -36,6 +36,7 @@ module MetaSearch
 end
 
 require 'active_record'
+require 'active_support'
 require 'action_view'
 require 'action_controller'
 require 'meta_search/searches/active_record'
