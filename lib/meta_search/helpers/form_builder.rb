@@ -5,7 +5,6 @@ module MetaSearch
 
   module Helpers
     module FormBuilder
-      extend ActiveSupport::Concern
 
       # Like other form_for field methods (text_field, hidden_field, password_field) etc,
       # but takes a list of hashes between the +method+ parameter and the trailing option hash,

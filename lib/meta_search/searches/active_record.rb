@@ -4,23 +4,19 @@ require 'meta_search/builder'
 
 module MetaSearch::Searches
   module ActiveRecord
-    extend ActiveSupport::Concern
-    
-    included do
-      class_attribute :_metasearch_include_attributes, :_metasearch_exclude_attributes
-      class_attribute :_metasearch_include_associations, :_metasearch_exclude_associations
-      class_attribute :_metasearch_methods
-      self._metasearch_include_attributes =
-        self._metasearch_exclude_attributes =
-        self._metasearch_exclude_associations =
-        self._metasearch_include_associations = []
-      self._metasearch_methods = {}
-        
-      singleton_class.instance_eval do
-        alias_method :metasearch_include_attr, :attr_searchable
-        alias_method :metasearch_exclude_attr, :attr_unsearchable
-        alias_method :metasearch_include_assoc, :assoc_searchable
-        alias_method :metasearch_exclude_assoc, :assoc_unsearchable
+
+    def self.included(base)
+      base.extend ClassMethods
+
+      base.class_eval do
+        class_attribute :_metasearch_include_attributes, :_metasearch_exclude_attributes
+        class_attribute :_metasearch_include_associations, :_metasearch_exclude_associations
+        class_attribute :_metasearch_methods
+        self._metasearch_include_attributes =
+          self._metasearch_exclude_attributes =
+          self._metasearch_exclude_associations =
+          self._metasearch_include_associations = []
+        self._metasearch_methods = {}
       end
     end
 
@@ -29,15 +25,17 @@ module MetaSearch::Searches
       # MetaSearch::Builder, which behaves pretty much like an ActiveRecord::Relation,
       # in that it doesn't actually query the database until you do something that
       # requires it to do so.
-      def search(opts = {})
+      def metasearch(opts = {})
         opts ||= {} # to catch nil params
         search_options = opts.delete(:search_options) || {}
         builder = MetaSearch::Builder.new(self, search_options)
         builder.build(opts)
       end
 
+      alias_method :search, :metasearch unless respond_to?(:search)
+
       private
-      
+
       # Excludes model attributes from searchability. This means that searches can't be created against
       # these columns, whether the search is based on this model, or the model's attributes are being
       # searched by association from another model. If a Comment <tt>belongs_to :article</tt> but declares
@@ -62,7 +60,7 @@ module MetaSearch::Searches
           self._metasearch_include_attributes = (self._metasearch_include_attributes + [attr]).uniq
         end
       end
-      
+
       # Excludes model associations from searchability. This mean that searches can't be created against
       # these associations. An article that <tt>has_many :comments</tt> but excludes comments from
       # searching by declaring <tt>assoc_unsearchable :comments</tt> won't make any of the
@@ -74,7 +72,7 @@ module MetaSearch::Searches
           self._metasearch_exclude_associations = (self._metasearch_exclude_associations + [assoc]).uniq
         end
       end
-      
+
       # As with <tt>attr_searchable</tt> this is the whitelist version of
       # <tt>assoc_unsearchable</tt>
       def assoc_searchable(*args)
@@ -84,7 +82,7 @@ module MetaSearch::Searches
           self._metasearch_include_associations = (self._metasearch_include_associations + [assoc]).uniq
         end
       end
-      
+
       def search_methods(*args)
         opts = args.last.is_a?(Hash) ? args.pop : {}
         args.flatten.map(&:to_s).each do |arg|

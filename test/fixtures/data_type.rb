@@ -1,4 +1,4 @@
 class DataType < ActiveRecord::Base
   belongs_to :company
-  metasearch_exclude_attr :str
+  attr_unsearchable :str
 end
