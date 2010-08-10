@@ -1,6 +1,7 @@
 Changes since 0.5.3 (2010-07-26):
- *Add is_true/is_false for boolean columns
- * Add is_present and is_blank for non-boolean columns
+ * Add is_true/is_false for boolean columns
+ * Add is_present and is_blank for string/numeric columns
+ * Add is_null and is_not_null for all columns
  * Fix behavior of equals when used with boolean columns.
 
 Changes since 0.5.2 (2010-07-22):
