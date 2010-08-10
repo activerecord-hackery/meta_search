@@ -665,12 +665,40 @@ class TestSearch < Test::Unit::TestCase
           @s.name_is_blank = true
         end
 
-        should "return 5 results" do
+        should "return 2 results" do
           assert_equal 2, @s.all.size
         end
 
         should "contain no results with a present name column" do
           assert_equal 0, @s.all.select {|r| r.name.present?}.size
+        end
+      end
+
+      context "where name is null" do
+        setup do
+          @s.name_is_null = true
+        end
+
+        should "return 1 result" do
+          assert_equal 1, @s.all.size
+        end
+
+        should "contain no results with a non-null name column" do
+          assert_equal 0, @s.all.select {|r| r.name != nil}.size
+        end
+      end
+
+      context "where name is not null" do
+        setup do
+          @s.name_is_not_null = true
+        end
+
+        should "return 6 results" do
+          assert_equal 6, @s.all.size
+        end
+
+        should "contain no results with a null name column" do
+          assert_equal 0, @s.all.select {|r| r.name = nil}.size
         end
       end
     end
