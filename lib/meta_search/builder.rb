@@ -113,7 +113,7 @@ module MetaSearch
       self
     end
 
-    def respond_to?(method_name)
+    def respond_to?(method_name, include_private = false)
       return true if super # Hopefully we've already defined the method.
 
       # Curses! Looks like we'll need to do this the hard way.
