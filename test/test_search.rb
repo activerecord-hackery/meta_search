@@ -18,12 +18,28 @@ class TestSearch < Test::Unit::TestCase
         assert @s.get_association(:developers)
       end
 
+      should "respond_to? a search against a developer attribute" do
+        assert_respond_to @s, :developers_name_eq
+      end
+
       should "have a column named name" do
         assert @s.get_column(:name)
       end
 
+      should "respond_to? a search against name" do
+        assert_respond_to @s, :name_eq
+      end
+
+      should "respond_to? a search against backwards_name" do
+        assert_respond_to @s, :backwards_name
+      end
+
       should "exclude the column named updated_at" do
         assert_nil @s.get_column(:updated_at)
+      end
+
+      should "not respond_to? updated_at" do
+        assert !@s.respond_to?(:updated_at), "The search responded to :updated_at"
       end
 
       should "raise an error if we try to search on updated_at" do
@@ -36,6 +52,10 @@ class TestSearch < Test::Unit::TestCase
         assert_nil @s.get_association(:notes)
       end
 
+      should "not respond_to? notes_note_eq" do
+        assert !@s.respond_to?(:notes_note_eq), "The search responded to :notes_note_eq"
+      end
+
       should "raise an error if we try to search on notes" do
         assert_raise NoMethodError do
           @s.notes_note_eq = 'Blah'
@@ -44,6 +64,14 @@ class TestSearch < Test::Unit::TestCase
 
       should "honor its associations' excluded attributes" do
         assert_nil @s.get_attribute(:data_types_str)
+      end
+
+      should "not respond_to? data_types_str_eq" do
+        assert !@s.respond_to?(:data_types_str_eq), "The search responded to :data_types_str_eq"
+      end
+
+      should "respond_to? data_types_bln_eq" do
+        assert_respond_to @s, :data_types_bln_eq
       end
 
       should "raise an error if we try to search data_types.str" do

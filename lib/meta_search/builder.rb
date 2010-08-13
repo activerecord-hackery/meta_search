@@ -124,7 +124,7 @@ module MetaSearch
         true
       elsif match = method_name.match(/^(.*)\(([0-9]+).*\)$/)
         method_name, index = match.captures
-        return true if respond_to?(method_name)
+        respond_to?(method_name)
       elsif matches_named_method(method_name) || matches_attribute_method(method_name)
         true
       else
