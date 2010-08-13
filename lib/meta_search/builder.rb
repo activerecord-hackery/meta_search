@@ -118,7 +118,7 @@ module MetaSearch
 
       # Curses! Looks like we'll need to do this the hard way.
       method_name = method_name.to_s
-      if RELATION_METHODS.map(&:to_s).detect(method_name)
+      if RELATION_METHODS.map(&:to_s).include?(method_name)
         true
       elsif method_name.match(/^meta_sort=?$/)
         true
