@@ -33,7 +33,7 @@ module MetaSearch
   ]
 
   RELATION_METHODS = [:joins, :includes, :select, :order, :where, :having,
-                      :to_a, :all, :count, :to_sql, :debug_sql, :paginate,
+                      :to_a, :all, :count, :length, :size, :to_sql, :debug_sql, :paginate,
                       :find_each, :first, :last, :each, :arel]
 end
 
