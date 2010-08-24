@@ -15,10 +15,10 @@ begin
     gem.homepage = "http://metautonomo.us/projects/metasearch/"
     gem.authors = ["Ernie Miller"]
     gem.add_development_dependency "shoulda"
-    gem.add_dependency "activerecord", ">= 3.0.0.rc"
-    gem.add_dependency "activesupport", ">= 3.0.0.rc"
-    gem.add_dependency "actionpack", ">= 3.0.0.rc"
-    gem.add_dependency "arel", ">= 0.4.0"
+    gem.add_dependency "activerecord", "~> 3.0.0.rc"
+    gem.add_dependency "activesupport", "~> 3.0.0.rc"
+    gem.add_dependency "actionpack", "~> 3.0.0.rc"
+    gem.add_dependency "arel", "~> 1.0.0.rc1"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new
