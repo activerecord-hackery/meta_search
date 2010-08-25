@@ -37,11 +37,14 @@ module MetaSearch
           Date.new(y,m,d) rescue nil
         end
       when *TIMES
-        if val.respond_to?(:to_time)
-          val.to_time rescue nil
-        else
+        if val.is_a?(Array)
           y, m, d, hh, mm, ss = *[val].flatten
           Time.zone.local(y, m, d, hh, mm, ss) rescue nil
+        else
+          unless val.acts_like?(:time)
+            val = val.is_a?(String) ? Time.zone.parse(val) : val.to_time rescue val
+          end
+          val.in_time_zone rescue nil
         end
       when *BOOLEANS
         ActiveRecord::ConnectionAdapters::Column.value_to_boolean(val)
