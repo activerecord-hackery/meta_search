@@ -1,21 +1,24 @@
+Changes since 0.9.2 (2010-08-25):
+  * Update dependencies for Rails 3 final.
+
 Changes since 0.9.1 (2010-08-24):
- * Fix time column casts to account for current time zone.
+  * Fix time column casts to account for current time zone.
 
 Changes since 0.9.0 (2010-08-24):
- * Fix the missing "2" in the Rails 3.0.0.rc2 dependency. Sorry!
+  * Fix the missing "2" in the Rails 3.0.0.rc2 dependency. Sorry!
 
 Changes since 0.5.4 (2010-07-28):
- * Fix equals Where against boolean columns
- * Add is_true/is_false for booleans, is_present/is_blank for other types
- * Add is_null/is_not_null for all types
- * Remove deprecated metasearch_exclude_attr and friends
- * delegate #size and #length to relation
+  * Fix equals Where against boolean columns
+  * Add is_true/is_false for booleans, is_present/is_blank for other types
+  * Add is_null/is_not_null for all types
+  * Remove deprecated metasearch_exclude_attr and friends
+  * delegate #size and #length to relation
 
 Changes since 0.5.3 (2010-07-26):
- * Add is_true/is_false for boolean columns
- * Add is_present and is_blank for string/numeric columns
- * Add is_null and is_not_null for all columns
- * Fix behavior of equals when used with boolean columns.
+  * Add is_true/is_false for boolean columns
+  * Add is_present and is_blank for string/numeric columns
+  * Add is_null and is_not_null for all columns
+  * Fix behavior of equals when used with boolean columns.
 
 Changes since 0.5.2 (2010-07-22):
   * Handle nested/namespaced form_for better. Formerly, you could use
