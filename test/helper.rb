@@ -4,6 +4,7 @@ require 'shoulda'
 require 'active_record'
 require 'active_record/fixtures'
 require 'action_view'
+require 'meta_search'
 
 FIXTURES_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
@@ -26,7 +27,6 @@ Fixtures.create_fixtures(FIXTURES_PATH, ActiveRecord::Base.connection.tables)
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
-require 'meta_search'
 
 class Test::Unit::TestCase
   def self.context_a_search_against(name, object, &block)

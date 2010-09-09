@@ -85,22 +85,6 @@ module MetaSearch
       attribute
     end
 
-    def base_includes_association?(base, assoc)
-      if base._metasearch_include_associations.blank?
-        base.reflect_on_association(assoc.to_sym) unless base._metasearch_exclude_associations.include?(assoc.to_s)
-      else
-        base.reflect_on_association(assoc.to_sym) if base._metasearch_include_associations.include?(assoc.to_s)
-      end
-    end
-
-    def base_includes_attribute?(base, attribute)
-      if base._metasearch_include_attributes.blank?
-        base.column_names.detect(attribute.to_s) unless base._metasearch_exclude_attributes.include?(attribute.to_s)
-      else
-        base.column_names.detect(attribute.to_s) if base._metasearch_include_attributes.include?(attribute.to_s)
-      end
-    end
-
     # Build the search with the given search options. Options are in the form of a hash
     # with keys matching the names creted by the Builder's "wheres" as outlined in
     # MetaSearch::Where
