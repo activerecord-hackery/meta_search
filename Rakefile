@@ -5,7 +5,7 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "meta_search"
-    gem.summary = %Q{ActiveRecord 3 object-based searching for your form_for enjoyment.}
+    gem.summary = %Q{Object-based searching (and more) for simply creating search forms.}
     gem.description = %Q{
       Allows simple search forms to be created against an AR3 model
       and its associations, has useful view helpers for sort links
@@ -19,7 +19,15 @@ begin
     gem.add_dependency "activesupport", "~> 3.0.0"
     gem.add_dependency "actionpack", "~> 3.0.0"
     gem.add_dependency "arel", "~> 1.0.1"
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+    gem.post_install_message = <<END
+
+*** Thanks for installing MetaSearch! ***
+Be sure to check out http://metautonomo.us/projects/metasearch/ for a
+walkthrough of MetaSearch's features, and click the donate button if
+you're feeling especially appreciative. It'd help me justify this
+"open source" stuff to my lovely wife. :)
+
+END
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError

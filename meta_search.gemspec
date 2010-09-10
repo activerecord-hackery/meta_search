@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-09-08}
+  s.date = %q{2010-09-10}
   s.description = %q{
       Allows simple search forms to be created against an AR3 model
       and its associations, has useful view helpers for sort links
@@ -60,10 +60,18 @@ Gem::Specification.new do |s|
      "test/test_view_helpers.rb"
   ]
   s.homepage = %q{http://metautonomo.us/projects/metasearch/}
+  s.post_install_message = %q{
+*** Thanks for installing MetaSearch! ***
+Be sure to check out http://metautonomo.us/projects/metasearch/ for a
+walkthrough of MetaSearch's features, and click the donate button if
+you're feeling especially appreciative. It'd help me justify this
+"open source" stuff to my lovely wife. :)
+
+}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
-  s.summary = %q{ActiveRecord 3 object-based searching for your form_for enjoyment.}
+  s.summary = %q{Object-based searching (and more) for simply creating search forms.}
   s.test_files = [
     "test/fixtures/company.rb",
      "test/fixtures/data_type.rb",
