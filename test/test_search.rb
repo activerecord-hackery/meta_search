@@ -1,6 +1,6 @@
 require 'helper'
 
-class TestSearch < Test::Unit::TestCase
+class TestSearch < Test::Unit::TestCase  
 
   [{:name => 'Company', :object => Company},
    {:name => 'Company as a Relation', :object => Company.scoped}].each do |object|
@@ -274,6 +274,21 @@ class TestSearch < Test::Unit::TestCase
 
       should "have an association named projects" do
         assert @s.get_association(:projects)
+      end
+
+      should "respond_to? a search against an associated class scope" do
+        assert_respond_to @s, :company_backwards_name
+      end
+
+      context "where company backwards name is hcetinI" do
+        setup do
+          @s.company_backwards_name = 'hcetinI'
+        end
+
+        should "return 3 results" do
+          assert_equal 3, @s.all.size
+        end
+
       end
 
       context "sorted by company name in ascending order" do
