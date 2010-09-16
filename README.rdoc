@@ -50,8 +50,8 @@ Or, you can build up any relation you like and call the search method on that ob
 
 === Multi-level associations
 
-MetaSearch will allow you traverse your associations in one form, generating the necessary
-joins along the way. If you have the following models...
+MetaSearch will allow you to traverse your associations in one form, generating the
+necessary joins along the way. If you have the following models...
 
   class Company < ActiveRecord::Base
     has_many :developers
@@ -64,12 +64,12 @@ joins along the way. If you have the following models...
 
 ...you can do this in your form to search your companies by developers with certain notes:
 
-  <%= f.text_field :developers_notes_note %>
+  <%= f.text_field :developers_notes_note_contains %>
 
 You can travel forward and back through the associations, so this would also work (though
 be entirely pointless in this case):
 
-  <%= f.text_field :developers_notes_developer_company_name %>
+  <%= f.text_field :developers_notes_developer_company_name_contains %>
 
 However, to prevent abuse, this is limited to associations of a total "depth" of 5 levels.
 This means that while starting from a Company model, as above, you could do
@@ -202,7 +202,7 @@ All <tt>sort_link</tt>-generated links will have the CSS class sort_link, as wel
 directional class (ascending or descending) if the link is for a currently sorted column,
 for your styling enjoyment.
 
-This feature should hopefully help out those of you migrating from SearchLogic, and a thanks
+This feature should hopefully help out those of you migrating from Searchlogic, and a thanks
 goes out to Ben Johnson for the HTML entities used for the up and down arrows, which provide
 a nice default look.
 
