@@ -1,3 +1,8 @@
+Changes since 0.9.3 (2010-09-08):
+  * Minor documentation fixes.
+  * Add sort_link helper to FormBuilder, to spare keystrokes if sort_links
+    are being added inside the context of the form_for of the search.
+
 Changes since 0.9.2 (2010-08-25):
   * Update dependencies for Rails 3 final.
 

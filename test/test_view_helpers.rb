@@ -152,31 +152,51 @@ class TestViewHelpers < ActionView::TestCase
 <% end -%>
                        ERB
     end
+  end
 
-    context "A form using collection_check_boxes with companies" do
-      setup do
-        @s = Company.search
-        form_for @s do |f|
-          @f = f
-        end
+  context "A form using collection_check_boxes with companies" do
+    setup do
+      @s = Company.search
+      form_for @s do |f|
+        @f = f
       end
+    end
 
-      should "return an array of check boxes without a block" do
-       assert @f.collection_check_boxes(:id_in, Company.all, :id, :name).all?{|c| c.is_a?(MetaSearch::Check)}
-      end
+    should "return an array of check boxes without a block" do
+     assert @f.collection_check_boxes(:id_in, Company.all, :id, :name).all?{|c| c.is_a?(MetaSearch::Check)}
+    end
 
-      should "generate the expected HTML with a block" do
-        @f.collection_check_boxes(:id_in, Company.all, :id, :name) do |c|
-          concat render :to => :string, :inline => "<p><%= c.label %> <%= c.box %></p>", :locals => {:c => c}
-        end
-        assert_dom_equal output_buffer,
-                         '<p><label for="search_id_in_1">Initech</label> ' +
-                         '<input id="search_id_in_1" name="search[id_in][]" type="checkbox" value="1" /></p>' +
-                         '<p><label for="search_id_in_2">Advanced Optical Solutions</label> ' +
-                         '<input id="search_id_in_2" name="search[id_in][]" type="checkbox" value="2" /></p>' +
-                         '<p><label for="search_id_in_3">Mission Data</label> ' +
-                         '<input id="search_id_in_3" name="search[id_in][]" type="checkbox" value="3" /></p>'
+    should "generate the expected HTML with a block" do
+      @f.collection_check_boxes(:id_in, Company.all, :id, :name) do |c|
+        concat render :to => :string, :inline => "<p><%= c.label %> <%= c.box %></p>", :locals => {:c => c}
       end
+      assert_dom_equal output_buffer,
+                       '<p><label for="search_id_in_1">Initech</label> ' +
+                       '<input id="search_id_in_1" name="search[id_in][]" type="checkbox" value="1" /></p>' +
+                       '<p><label for="search_id_in_2">Advanced Optical Solutions</label> ' +
+                       '<input id="search_id_in_2" name="search[id_in][]" type="checkbox" value="2" /></p>' +
+                       '<p><label for="search_id_in_3">Mission Data</label> ' +
+                       '<input id="search_id_in_3" name="search[id_in][]" type="checkbox" value="3" /></p>'
+    end
+  end
+
+  context "A company search form sorted by name ascending" do
+    setup do
+      @s = Company.search
+      @s.meta_sort = 'name.asc'
+      form_for @s do |f|
+        @f = f
+      end
+    end
+
+    should "generate a sort link with an up arrow for the sorted column" do
+      assert_match /Name &#9650;/,
+                   @f.sort_link(:name, :controller => 'companies')
+    end
+
+    should "not generate a sort link with an up arrow for a non-sorted column" do
+      assert_no_match /Created at &#9650;/,
+                      @f.sort_link(:created_at, :controller => 'companies')
     end
   end
 

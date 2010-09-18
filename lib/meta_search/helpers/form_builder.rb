@@ -135,6 +135,19 @@ module MetaSearch
         check_boxes unless block_given?
       end
 
+      # Creates a sort link for the MetaSearch::Builder the form is created against.
+      # Useful shorthand if your results happen to reside in the context of your
+      # form_for block.
+      # Sample usage:
+      #
+      #   <%= f.sort_link :name %>
+      #   <%= f.sort_link :name, 'Company Name' %>
+      #   <%= f.sort_link :name, :class => 'name_sort' %>
+      #   <%= f.sort_link :name, 'Company Name', :class => 'company_name_sort' %>
+      def sort_link(attribute, *args)
+        @template.sort_link @object, attribute, *args
+      end
+
       private
 
       # If the last element of the arguments to multiparameter_field has no :field_type

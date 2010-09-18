@@ -1,7 +1,21 @@
 module MetaSearch
   module Helpers
     module UrlHelper
-      
+
+      # Generates a column sort link for a given attribute of a MetaSearch::Builder object.
+      # The link maintains existing options for the sort as parameters in the URL, and
+      # sets a meta_sort parameter as well. If the first parameter after the attribute name
+      # is not a hash, it will be used as a string for alternate link text. If a hash is
+      # supplied, it will be passed to link_to as an html_options hash. The link will
+      # be assigned two css classes: sort_link and one of "asc" or "desc", depending on
+      # the current sort order. Any class supplied in the options hash will be appended.
+      #
+      # Sample usage:
+      #
+      #   <%= sort_link @search, :name %>
+      #   <%= sort_link @search, :name, 'Company Name' %>
+      #   <%= sort_link @search, :name, :class => 'name_sort' %>
+      #   <%= sort_link @search, :name, 'Company Name', :class => 'company_name_sort' %>
       def sort_link(builder, attribute, *args)
         raise ArgumentError, "Need a MetaSearch::Builder search object as first param!" unless builder.is_a?(MetaSearch::Builder)
         attr_name = attribute.to_s
@@ -22,9 +36,9 @@ module MetaSearch
                 url_for(options),
                 html_options
       end
-      
+
       private
-      
+
       def order_indicator_for(order)
         if order == 'asc'
           '&#9650;'
