@@ -70,7 +70,7 @@ module MetaSearch
       #
       #   <h4>How many heads?</h4>
       #   <ul>
-      #     <% f.check_boxes :number_of_heads_in,
+      #     <% f.checks :number_of_heads_in,
       #        [['One', 1], ['Two', 2], ['Three', 3]], :class => 'checkboxy' do |check| %>
       #        <li>
       #          <%= check.box %>
@@ -86,7 +86,7 @@ module MetaSearch
       # Chain <tt>in_groups_of(<num>, false)</tt> on check_boxes like so:
       #   <h4>How many heads?</h4>
       #   <p>
-      #     <% f.check_boxes(:number_of_heads_in,
+      #     <% f.checks(:number_of_heads_in,
       #        [['One', 1], ['Two', 2], ['Three', 3]],
       #        :class => 'checkboxy').in_groups_of(2, false) do |checks| %>
       #       <% checks.each do |check| %>
@@ -96,23 +96,25 @@ module MetaSearch
       #       <br />
       #     <% end %>
       #   </p>
-      def check_boxes(method, choices = [], options = {}, &block)
+      def checks(method, choices = [], options = {}, &block)
         unless choices.first.respond_to?(:first) && choices.first.respond_to?(:last)
           raise ArgumentError, 'invalid choice array specified'
         end
-        collection_check_boxes(method, choices, :last, :first, options, &block)
+        collection_checks(method, choices, :last, :first, options, &block)
       end
 
-      # Just like +check_boxes+, but this time you can pass in a collection, value, and text method,
+      alias_method :check_boxes, :checks unless method_defined?(:check_boxes)
+
+      # Just like +checks+, but this time you can pass in a collection, value, and text method,
       # as with collection_select.
       #
       # Example:
       #
-      #   <% f.collection_check_boxes :head_sizes_in, HeadSize.all,
+      #   <% f.collection_checks :head_sizes_in, HeadSize.all,
       #       :id, :name, :class => 'headcheck' do |check| %>
       #     <%= check.box %> <%= check.label %>
       #   <% end %>
-      def collection_check_boxes(method, collection, value_method, text_method, options = {}, &block)
+      def collection_checks(method, collection, value_method, text_method, options = {}, &block)
         check_boxes = []
         collection.each do |choice|
           text = choice.send(text_method)
@@ -134,6 +136,8 @@ module MetaSearch
         end
         check_boxes unless block_given?
       end
+
+      alias_method :collection_check_boxes, :collection_checks unless method_defined?(:collection_check_boxes)
 
       # Creates a sort link for the MetaSearch::Builder the form is created against.
       # Useful shorthand if your results happen to reside in the context of your
