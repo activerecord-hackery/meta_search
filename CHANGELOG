@@ -1,3 +1,8 @@
+Changes since 0.9.4 (2010-09-18):
+  * Rename check_boxes and collection_check_boxes to checks and
+    collection_checks. Alias to the old names if not already taken. This
+    is to avoid conflicts with SimpleForm.
+
 Changes since 0.9.3 (2010-09-08):
   * Minor documentation fixes.
   * Add sort_link helper to FormBuilder, to spare keystrokes if sort_links

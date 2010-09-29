@@ -6,6 +6,14 @@ module MetaSearch
   module Helpers
     module FormBuilder
 
+      def self.included(base)
+        # Only take on the check_boxes method names if someone else (Hi, José!) hasn't grabbed them.
+        base.class_eval do
+          alias_method :check_boxes, :checks unless method_defined?(:check_boxes)
+          alias_method :collection_check_boxes, :collection_checks unless method_defined?(:collection_check_boxes)
+        end
+      end
+
       # Like other form_for field methods (text_field, hidden_field, password_field) etc,
       # but takes a list of hashes between the +method+ parameter and the trailing option hash,
       # if any, to specify a number of fields to create in multiparameter fashion.
@@ -83,7 +91,7 @@ module MetaSearch
       #
       # <b>Grouping:</b>
       #
-      # Chain <tt>in_groups_of(<num>, false)</tt> on check_boxes like so:
+      # Chain <tt>in_groups_of(<num>, false)</tt> on checks like so:
       #   <h4>How many heads?</h4>
       #   <p>
       #     <% f.checks(:number_of_heads_in,
@@ -102,8 +110,6 @@ module MetaSearch
         end
         collection_checks(method, choices, :last, :first, options, &block)
       end
-
-      alias_method :check_boxes, :checks unless method_defined?(:check_boxes)
 
       # Just like +checks+, but this time you can pass in a collection, value, and text method,
       # as with collection_select.
@@ -136,8 +142,6 @@ module MetaSearch
         end
         check_boxes unless block_given?
       end
-
-      alias_method :collection_check_boxes, :collection_checks unless method_defined?(:collection_check_boxes)
 
       # Creates a sort link for the MetaSearch::Builder the form is created against.
       # Useful shorthand if your results happen to reside in the context of your

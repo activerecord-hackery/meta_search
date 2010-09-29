@@ -75,7 +75,7 @@ class TestViewHelpers < ActionView::TestCase
     end
   end
 
-  context "A form using check_boxes with three choices" do
+  context "A form using checks with three choices" do
     setup do
       @s = Company.search
       form_for @s do |f|
@@ -84,7 +84,7 @@ class TestViewHelpers < ActionView::TestCase
     end
 
     should "return an array of check boxes without a block" do
-      assert @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]).all?{|c| c.is_a?(MetaSearch::Check)}
+      assert @f.checks(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]).all?{|c| c.is_a?(MetaSearch::Check)}
     end
 
     should "generate the expected HTML with a block" do
@@ -104,7 +104,7 @@ class TestViewHelpers < ActionView::TestCase
       EXPECTED
       assert_dom_equal expected,
         render(:to => :string, :inline => <<-ERB)
-<%= @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]) do |c| -%>
+<%= @f.checks(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]) do |c| -%>
 <p>
   <%= c.label %>
   <%= c.box %>
@@ -114,7 +114,7 @@ class TestViewHelpers < ActionView::TestCase
     end
   end
 
-  context "A form using check_boxes with three choices and a previous selection" do
+  context "A form using checks with three choices and a previous selection" do
     setup do
       @s = Company.search
       @s.id_in = [1, 3]
@@ -124,7 +124,7 @@ class TestViewHelpers < ActionView::TestCase
     end
 
     should "return an array of check boxes without a block" do
-      assert @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]).all?{|c| c.is_a?(MetaSearch::Check)}
+      assert @f.checks(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]).all?{|c| c.is_a?(MetaSearch::Check)}
     end
 
     should "generate the expected HTML with a block" do
@@ -144,7 +144,7 @@ class TestViewHelpers < ActionView::TestCase
       EXPECTED
       assert_dom_equal expected,
                        render(:to => :string, :inline => <<-ERB)
-<%= @f.check_boxes(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]) do |c| -%>
+<%= @f.checks(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]) do |c| -%>
 <p>
   <%= c.label %>
   <%= c.box %>
@@ -154,7 +154,7 @@ class TestViewHelpers < ActionView::TestCase
     end
   end
 
-  context "A form using collection_check_boxes with companies" do
+  context "A form using collection_checks with companies" do
     setup do
       @s = Company.search
       form_for @s do |f|
@@ -163,11 +163,11 @@ class TestViewHelpers < ActionView::TestCase
     end
 
     should "return an array of check boxes without a block" do
-     assert @f.collection_check_boxes(:id_in, Company.all, :id, :name).all?{|c| c.is_a?(MetaSearch::Check)}
+     assert @f.collection_checks(:id_in, Company.all, :id, :name).all?{|c| c.is_a?(MetaSearch::Check)}
     end
 
     should "generate the expected HTML with a block" do
-      @f.collection_check_boxes(:id_in, Company.all, :id, :name) do |c|
+      @f.collection_checks(:id_in, Company.all, :id, :name) do |c|
         concat render :to => :string, :inline => "<p><%= c.label %> <%= c.box %></p>", :locals => {:c => c}
       end
       assert_dom_equal output_buffer,
