@@ -97,7 +97,7 @@ module MetaSearch
     end
 
     # Evaluate the Where for the given relation, attribute, and parameter(s)
-    def eval(relation, attribute, param)
+    def evaluate(relation, attribute, param)
       if splat_param?
         relation.where(attribute.send(predicate, *format_param(param)))
       else

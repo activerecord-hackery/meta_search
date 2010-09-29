@@ -65,9 +65,9 @@ module MetaSearch
   # the class of your parameters, for instance.
   class Method
     include Utility
-    
+
     attr_reader :name, :formatter, :validator, :type
-    
+
     def initialize(name, opts ={})
       raise ArgumentError, "Name parameter required" if name.blank?
       @name = name
@@ -86,7 +86,7 @@ module MetaSearch
         raise ArgumentError, "Invalid validator for #{name}, should be a Proc."
       end
     end
-    
+
     # Cast the parameter to the type specified in the Method's <tt>type</tt>
     def cast_param(param)
       if type.is_a?(Array)
@@ -102,25 +102,25 @@ module MetaSearch
         cast_attributes(type, param)
       end
     end
-    
+
     # Evaluate the method in the context of the supplied relation and parameter
-    def eval(relation, param)
+    def evaluate(relation, param)
       if splat_param?
         relation.send(name, *format_param(param))
       else
         relation.send(name, format_param(param))
       end
     end
-    
+
     def splat_param?
       !!@splat_param
     end
-    
+
     # Format a parameter for searching using the Method's defined formatter.
     def format_param(param)
       formatter.call(param)
     end
-    
+
     # Validate the parameter for use in a search using the Method's defined validator.
     def validate(param)
       validator.call(param)

@@ -1,3 +1,6 @@
+Changes since 0.9.5 (2010-09-28):
+  * Fix issue with formatters supplied s strings
+
 Changes since 0.9.4 (2010-09-18):
   * Rename check_boxes and collection_check_boxes to checks and
     collection_checks. Alias to the old names if not already taken. This

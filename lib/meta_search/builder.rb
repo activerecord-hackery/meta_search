@@ -220,7 +220,7 @@ module MetaSearch
         define_method("#{name}=") do |val|
           search_attributes[name] = meth.cast_param(val)
           if meth.validate(search_attributes[name])
-            return_value = meth.eval(@relation, search_attributes[name])
+            return_value = meth.evaluate(@relation, search_attributes[name])
             if return_value.is_a?(ActiveRecord::Relation)
               @relation = return_value
             else
@@ -242,7 +242,7 @@ module MetaSearch
           search_attributes["#{attribute}_#{predicate}"] = cast_attributes(where.cast || column_type(attribute), val)
           if where.validate(search_attributes["#{attribute}_#{predicate}"])
             arel_attribute = get_attribute(attribute)
-            @relation = where.eval(@relation, arel_attribute, search_attributes["#{attribute}_#{predicate}"])
+            @relation = where.evaluate(@relation, arel_attribute, search_attributes["#{attribute}_#{predicate}"])
           end
         end
       end
