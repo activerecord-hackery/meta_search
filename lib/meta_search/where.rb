@@ -245,7 +245,6 @@ module MetaSearch
           create_where_from_args(*args + [{
             :types => where.types,
             :predicate => "#{where.predicate}_#{compound}".to_sym,
-            :splat_param => true,
             # Only use valid elements in the array
             :formatter => Proc.new {|param|
               param.select {|p| where.validator.call(p)}.map {|p| where.formatter.call(p)}
