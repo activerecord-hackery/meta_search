@@ -10,16 +10,29 @@ module MetaSearch
       false
     end
 
-    def to_key
-      nil
-    end
+    class CompatibleModel
+      attr_reader :base
 
-    def to_param
-      nil
-    end
+      def initialize(base)
+        @base = base
+      end
 
-    def to_model
-      self
+      def class
+        @base
+      end
+
+      # Force default "Update search" text
+      def persisted?
+        true
+      end
+
+      def to_key
+        nil
+      end
+
+      def to_param
+        nil
+      end
     end
   end
 
