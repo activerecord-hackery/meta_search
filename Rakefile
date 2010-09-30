@@ -15,9 +15,9 @@ begin
     gem.homepage = "http://metautonomo.us/projects/metasearch/"
     gem.authors = ["Ernie Miller"]
     gem.add_development_dependency "shoulda"
-    gem.add_dependency "activerecord", "~> 3.0.0"
-    gem.add_dependency "activesupport", "~> 3.0.0"
-    gem.add_dependency "actionpack", "~> 3.0.0"
+    gem.add_dependency "activerecord", "~> 3.0"
+    gem.add_dependency "activesupport", "~> 3.0"
+    gem.add_dependency "actionpack", "~> 3.0"
     gem.add_dependency "arel", "~> 2.0.0"
     gem.post_install_message = <<END
 
