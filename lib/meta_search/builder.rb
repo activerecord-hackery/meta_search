@@ -68,9 +68,9 @@ module MetaSearch
       if get_column(name, parent.active_record)
         if parent.is_a?(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
           relation = parent.relation.is_a?(Array) ? parent.relation.last : parent.relation
-          attribute = relation.table[name]
+          attribute = relation[name]
         else
-          attribute = @relation.table[name]
+          attribute = @relation.arel_table[name]
         end
       elsif (segments = name.to_s.split(/_/)).size > 1
         remainder = []
