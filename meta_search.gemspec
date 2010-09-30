@@ -9,8 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-10-20}
-  s.date = %q{2010-09-30}
+  s.date = %q{2010-11-03}
   s.description = %q{
       Allows simple search forms to be created against an AR3 model
       and its associations, has useful view helpers for sort links
@@ -58,6 +57,8 @@ Gem::Specification.new do |s|
      "test/fixtures/projects.yml",
      "test/fixtures/schema.rb",
      "test/helper.rb",
+     "test/locales/en.yml",
+     "test/locales/es.yml",
      "test/test_search.rb",
      "test/test_view_helpers.rb"
   ]
