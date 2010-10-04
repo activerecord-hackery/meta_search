@@ -1,5 +1,6 @@
 require 'helper'
 require 'action_controller'
+require 'rack/session/abstract'
 require 'action_view/test_case'
 
 class TestViewHelpers < ActionView::TestCase
