@@ -7,7 +7,7 @@ class TestViewHelpers < ActionView::TestCase
   include MetaSearch::Helpers::UrlHelper
 
   router = ActionDispatch::Routing::RouteSet.new
-  router.draw do |map|
+  router.draw do
     resources :developers
     resources :companies
     resources :projects

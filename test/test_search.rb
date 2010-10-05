@@ -308,6 +308,17 @@ class TestSearch < Test::Unit::TestCase
         end
       end
 
+      context "where name or company name starts with m" do
+        setup do
+          @s.name_or_company_name_starts_with = "m"
+        end
+
+        should "return Michael Bolton and all employees of Mission Data" do
+          assert_equal @s.all, Developer.where(:name => 'Michael Bolton').all +
+                               Company.where(:name => 'Mission Data').first.developers
+        end
+      end
+
       context "where name ends with Miller" do
         setup do
           @s.name_ends_with = 'Miller'

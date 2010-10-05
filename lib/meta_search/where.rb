@@ -97,12 +97,14 @@ module MetaSearch
     end
 
     # Evaluate the Where for the given relation, attribute, and parameter(s)
-    def evaluate(relation, attribute, param)
+    def evaluate(relation, attributes, param)
       if splat_param?
-        relation.where(attribute.send(predicate, *format_param(param)))
+        conditions = attributes.map {|a| a.send(predicate, *format_param(param))}
       else
-        relation.where(attribute.send(predicate, format_param(param)))
+        conditions = attributes.map {|a| a.send(predicate, format_param(param))}
       end
+
+      relation.where(conditions.inject(nil) {|memo, c| memo ? memo.or(c) : c})
     end
 
     class << self

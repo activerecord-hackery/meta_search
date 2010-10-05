@@ -239,10 +239,11 @@ module MetaSearch
 
         define_method("#{attribute}_#{predicate}=") do |val|
           where = Where.new(predicate)
-          search_attributes["#{attribute}_#{predicate}"] = cast_attributes(where.cast || column_type(attribute), val)
+          attributes = attribute.split(/_or_/)
+          search_attributes["#{attribute}_#{predicate}"] = cast_attributes(where.cast || column_type(attributes.first), val)
           if where.validate(search_attributes["#{attribute}_#{predicate}"])
-            arel_attribute = get_attribute(attribute)
-            @relation = where.evaluate(@relation, arel_attribute, search_attributes["#{attribute}_#{predicate}"])
+            arel_attributes = attributes.map {|a| get_attribute(a)}
+            @relation = where.evaluate(@relation, arel_attributes, search_attributes["#{attribute}_#{predicate}"])
           end
         end
       end
@@ -282,24 +283,9 @@ module MetaSearch
       return nil unless method_name && where
       match = method_name.match("^(.*)_(#{where.name})=?$")
       attribute, predicate = match.captures
-      if where.types.include?(column_type(attribute))
+      attributes = attribute.split(/_or_/)
+      if attributes.all? {|a| where.types.include?(column_type(a))}
         return match
-      end
-      nil
-    end
-
-    def matches_association_method(method_id)
-      method_name = preferred_method_name(method_id)
-      where = Where.new(method_id) rescue nil
-      return nil unless method_name && where
-      match = method_name.match("^(.*)_(#{where.name})=?$")
-      attribute, predicate = match.captures
-      self.included_associations.each do |association|
-        test_attribute = attribute.dup
-        if test_attribute.gsub!(/^#{association}_/, '') &&
-          match = method_name.match("^(#{association})_(#{test_attribute})_(#{predicate})=?$")
-          return match if where.types.include?(association_type_for(association, test_attribute))
-        end
       end
       nil
     end
