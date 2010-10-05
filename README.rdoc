@@ -144,12 +144,12 @@ MetaSearch adds a helper for this:
 lets you sandwich a list of fields, each in hash format, between the attribute and the usual
 options hash. See MetaSearch::Helpers::FormBuilder for more info.
 
-=== OR'ed conditions
+=== ORed conditions
 
 If you'd like to match on one of several possible columns, you can do this:
 
-  <%= f.title_or_description_contains %>
-  <%= f.title_or_author_name_starts_with %>
+  <%= f.text_field :title_or_description_contains %>
+  <%= f.text_field :title_or_author_name_starts_with %>
 
 Caveats:
 
