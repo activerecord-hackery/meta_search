@@ -153,7 +153,7 @@ If you'd like to match on one of several possible columns, you can do this:
 
 Caveats:
 
-* Only one match type is supported. You *can't* do
+* Only one match type is supported. You **can't** do
   <tt>title_matches_or_description_starts_with</tt> for instance.
 * If you're matching across associations, remember that the associated table will be
   INNER JOINed, therefore limiting results to those that at least have a corresponding
