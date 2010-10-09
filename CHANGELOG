@@ -1,6 +1,13 @@
 Changes since 0.9.6 (2010-09-29):
   * Support _or_-separated conditions. I'm not crazy about 'em, but it's
     an oft-requested feature.
+  * Support search on polymorphic belongs_to associations. Uses the same
+    syntax users of Searchlogic are familiar with:
+      association_classname_type
+    For example: commentable_article_type_contains
+  * Join using left outer joins instead of inner joins. This lets you do
+    some interesting things like search for all articles with no comments via
+    comments_id_is_null.
 
 Changes since 0.9.5 (2010-09-28):
   * Fix issue with formatters supplied as strings

@@ -10,6 +10,10 @@ module MetaSearch
   # resulting in a query that could cause issues for your database server.
   class JoinDepthError < StandardError; end
 
+  # Raised if you try to search on a polymorphic belongs_to association without specifying
+  # its type.
+  class PolymorphicAssociationMissingTypeError < StandardError; end
+
   # Builder is the workhorse of MetaSearch -- it is the class that handles dynamically generating
   # methods based on a supplied model, and is what gets instantiated when you call your model's search
   # method. Builder doesn't generate any methods until they're needed, using method_missing to compare
@@ -77,8 +81,19 @@ module MetaSearch
         found_assoc = nil
         while remainder.unshift(segments.pop) && segments.size > 0 && !found_assoc do
           if found_assoc = get_association(segments.join('_'), parent.active_record)
-            join = build_or_find_association(found_assoc.name, parent)
-            attribute = get_attribute(remainder.join('_'), join)
+            if found_assoc.options[:polymorphic]
+              unless delimiter = remainder.index('type')
+                raise PolymorphicAssociationMissingTypeError, "Polymorphic association specified without a type"
+              end
+              polymorphic_class, attribute_name = remainder[0...delimiter].join('_'),
+                                                  remainder[delimiter + 1...remainder.size].join('_')
+              polymorphic_class = polymorphic_class.classify.constantize
+              join = build_or_find_association(found_assoc.name, parent, polymorphic_class)
+              attribute = get_attribute(attribute_name, join)
+            else
+              join = build_or_find_association(found_assoc.name, parent, found_assoc.klass)
+              attribute = get_attribute(remainder.join('_'), join)
+            end
           end
         end
       end
@@ -203,7 +218,17 @@ module MetaSearch
         found_assoc = nil
         while remainder.unshift(segments.pop) && segments.size > 0 && !found_assoc do
           if found_assoc = get_association(segments.join('_'), base)
-            type = column_type(remainder.join('_'), found_assoc.klass)
+            if found_assoc.options[:polymorphic]
+              unless delimiter = remainder.index('type')
+                raise PolymorphicAssociationMissingTypeError, "Polymorphic association specified without a type"
+              end
+              polymorphic_class, attribute_name = remainder[0...delimiter].join('_'),
+                                                  remainder[delimiter + 1...remainder.size].join('_')
+              polymorphic_class = polymorphic_class.classify.constantize
+              type = column_type(attribute_name, polymorphic_class)
+            else
+              type = column_type(remainder.join('_'), found_assoc.klass)
+            end
           end
         end
       end
@@ -249,13 +274,14 @@ module MetaSearch
       end
     end
 
-    def build_or_find_association(association, parent = @join_dependency.join_base)
+    def build_or_find_association(association, parent = @join_dependency.join_base, klass = nil)
       found_association = @join_dependency.join_associations.detect do |assoc|
         assoc.reflection.name == association.to_sym &&
+        assoc.reflection.klass == klass &&
         assoc.parent == parent
       end
       unless found_association
-        @join_dependency.send(:build, association, parent)
+        @join_dependency.send(:build, association, parent, Arel::OuterJoin, klass)
         found_association = @join_dependency.join_associations.last
         @relation = @relation.joins(found_association)
       end

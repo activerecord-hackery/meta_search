@@ -41,9 +41,11 @@ require 'active_record'
 require 'active_support'
 require 'action_view'
 require 'action_controller'
+require 'meta_search/join_dependency'
 require 'meta_search/searches/active_record'
 require 'meta_search/helpers'
 
+ActiveRecord::Associations::ClassMethods::JoinDependency.send(:include, MetaSearch::JoinDependency)
 ActiveRecord::Base.send(:include, MetaSearch::Searches::ActiveRecord)
 ActionView::Helpers::FormBuilder.send(:include, MetaSearch::Helpers::FormBuilder)
 ActionController::Base.helper(MetaSearch::Helpers::UrlHelper)

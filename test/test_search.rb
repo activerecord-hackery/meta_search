@@ -411,6 +411,24 @@ class TestSearch < Test::Unit::TestCase
           assert_equal 0, @s.all.size
         end
       end
+
+      context "where developer is named Ernie Miller by polymorphic belongs_to against an association" do
+        setup do
+          @s.notes_notable_developer_type_name_equals = "Ernie Miller"
+        end
+
+        should "return one result" do
+          assert_equal 1, @s.all.size
+        end
+
+        should "return a developer named Ernie Miller" do
+          assert_contains @s.all, Developer.where(:name => 'Ernie Miller').first
+        end
+
+        should "not return a developer named Herb Myers" do
+          assert_does_not_contain @s.all, Developer.where(:name => "Herb Myers").first
+        end
+      end
     end
   end
 
@@ -738,6 +756,43 @@ class TestSearch < Test::Unit::TestCase
 
         should "contain no results with a null name column" do
           assert_equal 0, @s.all.select {|r| r.name = nil}.size
+        end
+      end
+
+      context "where notes_id is null" do
+        setup do
+          @s.notes_id_is_null = true
+        end
+
+        should "return 2 results" do
+          assert_equal 2, @s.all.size
+        end
+
+        should "contain no results with notes" do
+          assert_equal 0, @s.all.select {|r| r.notes.size > 0}.size
+        end
+      end
+    end
+  end
+
+  [{:name => 'Note', :object => Note},
+   {:name => 'Note as a Relation', :object => Note.scoped}].each do |object|
+    context_a_search_against object[:name], object[:object] do
+      should "allow search on polymorphic belongs_to associations" do
+        @s.notable_project_type_name_contains = 'MetaSearch'
+        assert_equal Project.find_by_name('MetaSearch Development').notes, @s.all
+      end
+
+      should "allow search on multiple polymorphic belongs_to associations" do
+        @s.notable_project_type_name_or_notable_developer_type_name_starts_with = 'M'
+        assert_equal Project.find_by_name('MetaSearch Development').notes +
+                     Developer.find_by_name('Michael Bolton').notes,
+                     @s.all
+      end
+
+      should "raise an error when attempting to search against polymorphic belongs_to association without a type" do
+        assert_raises ::MetaSearch::PolymorphicAssociationMissingTypeError do
+          @s.notable_name_contains = 'MetaSearch'
         end
       end
     end
