@@ -2,6 +2,10 @@ require 'meta_search/exceptions'
 
 module MetaSearch
   module Utility #:nodoc:
+
+    TRUE_VALUES = [true, 1, '1', 't', 'T', 'true', 'TRUE'].to_set
+    FALSE_VALUES = [false, 0, '0', 'f', 'F', 'false', 'FALSE'].to_set
+
     private
 
     def array_of_arrays?(vals)
@@ -47,13 +51,25 @@ module MetaSearch
           val.in_time_zone rescue nil
         end
       when *BOOLEANS
-        ActiveRecord::ConnectionAdapters::Column.value_to_boolean(val)
+        if val.is_a?(String) && value.blank?
+          nil
+        else
+          TRUE_VALUES.include?(val)
+        end
       when :integer
         val.blank? ? nil : val.to_i
       when :float
         val.blank? ? nil : val.to_f
       when :decimal
-        val.blank? ? nil : ActiveRecord::ConnectionAdapters::Column.value_to_decimal(val)
+        if val.blank?
+          nil
+        elsif val.class == BigDecimal
+          val
+        elsif val.respond_to?(:to_d)
+          val.to_d
+        else
+          val.to_s.to_d
+        end
       else
         raise TypeCastError, "Unable to cast columns of type #{type}"
       end
@@ -75,14 +91,6 @@ module MetaSearch
         end
       end
       opts
-    end
-
-    def quote_table_name(name)
-      ActiveRecord::Base.connection.quote_table_name(name)
-    end
-
-    def quote_column_name(name)
-      ActiveRecord::Base.connection.quote_column_name(name)
     end
   end
 end
