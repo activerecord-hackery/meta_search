@@ -4,16 +4,6 @@ require 'meta_search/where'
 require 'meta_search/utility'
 
 module MetaSearch
-  # Raised if you try to access a relation that's joining too many tables to itself.
-  # This is designed to prevent a malicious user from accessing something like
-  # :developers_company_developers_company_developers_company_developers_company_...,
-  # resulting in a query that could cause issues for your database server.
-  class JoinDepthError < StandardError; end
-
-  # Raised if you try to search on a polymorphic belongs_to association without specifying
-  # its type.
-  class PolymorphicAssociationMissingTypeError < StandardError; end
-
   # Builder is the workhorse of MetaSearch -- it is the class that handles dynamically generating
   # methods based on a supplied model, and is what gets instantiated when you call your model's search
   # method. Builder doesn't generate any methods until they're needed, using method_missing to compare
