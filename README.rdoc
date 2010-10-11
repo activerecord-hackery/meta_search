@@ -48,6 +48,32 @@ Or, you can build up any relation you like and call the search method on that ob
   @projects_with_awesome_users_search =
     Project.joins(:user).where(:users => {:awesome => true}).search(params[:search])
 
+    === ORed conditions
+
+    If you'd like to match on one of several possible columns, you can do this:
+
+      <%= f.text_field :title_or_description_contains %>
+      <%= f.text_field :title_or_author_name_starts_with %>
+
+    Caveats:
+
+    * Only one match type is supported. You <b>can't</b> do
+      <tt>title_matches_or_description_starts_with</tt> for instance.
+    * If you're matching across associations, remember that the associated table will be
+      INNER JOINed, therefore limiting results to those that at least have a corresponding
+      record in the associated table.
+
+    === Compound conditions (any/all)
+
+    All Where types automatically get an "any" and "all" variant. This has the same name and
+    aliases as the original, but is suffixed with _any and _all, for an "OR" or "AND" search,
+    respectively. So, if you want to provide the user with 5 different search boxes to enter
+    possible article titles:
+
+      <%= f.multiparameter_field :title_contains_any,
+            *5.times.inject([]) {|a, b| a << {:field_type => :text_field}} +
+            [:size => 10] %>
+
 === Multi-level associations
 
 MetaSearch will allow you to traverse your associations in one form, generating the
@@ -75,6 +101,42 @@ However, to prevent abuse, this is limited to associations of a total "depth" of
 This means that while starting from a Company model, as above, you could do
 Company -> :developers -> :notes -> :developer -> :company, which has gotten you right
 back where you started, but "travels" through 5 models total.
+
+In the case of polymorphic belongs_to associations, things work a bit differently. Let's say
+you have the following models:
+
+  class Article < ActiveRecord::Base
+    has_many :comments, :as => :commentable
+  end
+
+  class Post < ActiveRecord::Base
+    has_many :comments, :as => :commentable
+  end
+
+  class Comment < ActiveRecord::Base
+    belongs_to :commentable, :polymorphic => true
+    validates_presence_of :body
+  end
+
+Your first instinct might be to set up a text field for :commentable_body_contains, but
+you can't do this. MetaSearch would have no way to know which class lies on the other side
+of the polymorphic association, so it wouldn't be able to join the correct tables.
+
+Instead, you'll follow a convention Searchlogic users are already familiar with, using the
+name of the polymorphic association, then the underscored class name (AwesomeClass becomes
+awesome_class), then the delimiter "type", to tell MetaSearch anything that follows is an
+attribute name. For example:
+
+  <%= f.text_field :commentable_article_type_body_contains %>
+
+If you'd like to match on multiple types of polymorphic associations, you can join them
+with _or_, just like any other conditions:
+
+  <%= f.text_field :commentable_article_type_body_or_commentable_post_type_body_contains %>
+
+It's not pretty, but it works. Alternately, consider creating a custom search method as
+described below to save yourself some typing if you're creating a lot of these types of
+search fields.
 
 === Adding a new Where
 
@@ -143,32 +205,6 @@ MetaSearch adds a helper for this:
 <tt>multiparameter_field</tt> works pretty much like the other FormBuilder helpers, but it
 lets you sandwich a list of fields, each in hash format, between the attribute and the usual
 options hash. See MetaSearch::Helpers::FormBuilder for more info.
-
-=== ORed conditions
-
-If you'd like to match on one of several possible columns, you can do this:
-
-  <%= f.text_field :title_or_description_contains %>
-  <%= f.text_field :title_or_author_name_starts_with %>
-
-Caveats:
-
-* Only one match type is supported. You <b>can't</b> do
-  <tt>title_matches_or_description_starts_with</tt> for instance.
-* If you're matching across associations, remember that the associated table will be
-  INNER JOINed, therefore limiting results to those that at least have a corresponding
-  record in the associated table.
-
-=== Compound conditions (any/all)
-
-All Where types automatically get an "any" and "all" variant. This has the same name and
-aliases as the original, but is suffixed with _any and _all, for an "OR" or "AND" search,
-respectively. So, if you want to provide the user with 5 different search boxes to enter
-possible article titles:
-
-  <%= f.multiparameter_field :title_contains_any,
-        *5.times.inject([]) {|a, b| a << {:field_type => :text_field}} +
-        [:size => 10] %>
 
 === check_boxes and collection_check_boxes
 
