@@ -48,31 +48,31 @@ Or, you can build up any relation you like and call the search method on that ob
   @projects_with_awesome_users_search =
     Project.joins(:user).where(:users => {:awesome => true}).search(params[:search])
 
-    === ORed conditions
+=== ORed conditions
 
-    If you'd like to match on one of several possible columns, you can do this:
+If you'd like to match on one of several possible columns, you can do this:
 
-      <%= f.text_field :title_or_description_contains %>
-      <%= f.text_field :title_or_author_name_starts_with %>
+  <%= f.text_field :title_or_description_contains %>
+  <%= f.text_field :title_or_author_name_starts_with %>
 
-    Caveats:
+Caveats:
 
-    * Only one match type is supported. You <b>can't</b> do
-      <tt>title_matches_or_description_starts_with</tt> for instance.
-    * If you're matching across associations, remember that the associated table will be
-      INNER JOINed, therefore limiting results to those that at least have a corresponding
-      record in the associated table.
+* Only one match type is supported. You <b>can't</b> do
+  <tt>title_matches_or_description_starts_with</tt> for instance.
+* If you're matching across associations, remember that the associated table will be
+  INNER JOINed, therefore limiting results to those that at least have a corresponding
+  record in the associated table.
 
-    === Compound conditions (any/all)
+=== Compound conditions (any/all)
 
-    All Where types automatically get an "any" and "all" variant. This has the same name and
-    aliases as the original, but is suffixed with _any and _all, for an "OR" or "AND" search,
-    respectively. So, if you want to provide the user with 5 different search boxes to enter
-    possible article titles:
+All Where types automatically get an "any" and "all" variant. This has the same name and
+aliases as the original, but is suffixed with _any and _all, for an "OR" or "AND" search,
+respectively. So, if you want to provide the user with 5 different search boxes to enter
+possible article titles:
 
-      <%= f.multiparameter_field :title_contains_any,
-            *5.times.inject([]) {|a, b| a << {:field_type => :text_field}} +
-            [:size => 10] %>
+  <%= f.multiparameter_field :title_contains_any,
+        *5.times.inject([]) {|a, b| a << {:field_type => :text_field}} +
+        [:size => 10] %>
 
 === Multi-level associations
 
