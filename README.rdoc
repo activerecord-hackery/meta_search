@@ -130,7 +130,7 @@ attribute name. For example:
   <%= f.text_field :commentable_article_type_body_contains %>
 
 If you'd like to match on multiple types of polymorphic associations, you can join them
-with _or_, just like any other conditions:
+with <tt>_or_</tt>, just like any other conditions:
 
   <%= f.text_field :commentable_article_type_body_or_commentable_post_type_body_contains %>
 
