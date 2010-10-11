@@ -102,11 +102,11 @@ module MetaSearch
       self
     end
 
-    def respond_to?(method_name, include_private = false)
+    def respond_to?(method_id, include_private = false)
       return true if super # Hopefully we've already defined the method.
 
       # Curses! Looks like we'll need to do this the hard way.
-      method_name = method_name.to_s
+      method_name = method_id.to_s
       if RELATION_METHODS.map(&:to_s).include?(method_name)
         true
       elsif method_name.match(/^meta_sort=?$/)
@@ -124,20 +124,18 @@ module MetaSearch
     private
 
     def method_missing(method_id, *args, &block)
-      if method_id.to_s =~ /^meta_sort=?$/
-        build_sort_method
-        self.send(method_id, *args)
-      elsif match = method_id.to_s.match(/^(.*)\(([0-9]+).*\)$/) # Multiparameter reader
+      method_name = method_id.to_s
+      if method_name =~ /^meta_sort=?$/
+        method_name =~ /=$/ ? set_sort(args.first) : get_sort
+      elsif match = method_name.match(/^(.*)\(([0-9]+).*\)$/) # Multiparameter reader
         method_name, index = match.captures
         vals = self.send(method_name)
         vals.is_a?(Array) ? vals[index.to_i - 1] : nil
-      elsif match = matches_named_method(method_id)
-        build_named_method(match)
-        self.send(method_id, *args)
+      elsif match = matches_named_method(method_name)
+        method_name =~ /=$/ ? set_named_method_value(match, args.first) : get_named_method_value(match)
       elsif match = matches_attribute_method(method_id)
         attribute, predicate = match.captures
-        build_attribute_method(attribute, predicate)
-        self.send(preferred_method_name(method_id), *args)
+        method_name =~ /=$/ ? set_attribute_method_value(attribute, predicate, args.first) : get_attribute_method_value(attribute, predicate)
       else
         super
       end
@@ -182,20 +180,16 @@ module MetaSearch
       o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
     end
 
-    def build_sort_method
-      singleton_class.instance_eval do
-        define_method(:meta_sort) do
-          search_attributes['meta_sort']
-        end
+    def get_sort
+      search_attributes['meta_sort']
+    end
 
-        define_method(:meta_sort=) do |val|
-          column, direction = val.split('.')
-          direction ||= 'asc'
-          if ['asc','desc'].include?(direction) && attribute = get_attribute(column)
-            search_attributes['meta_sort'] = val
-            @relation = @relation.order(attribute.send(direction).to_sql)
-          end
-        end
+    def set_sort(val)
+      column, direction = val.split('.')
+      direction ||= 'asc'
+      if ['asc','desc'].include?(direction) && attribute = get_attribute(column)
+        search_attributes['meta_sort'] = val
+        @relation = @relation.order(attribute.send(direction).to_sql)
       end
     end
 
@@ -225,42 +219,34 @@ module MetaSearch
       type
     end
 
-    def build_named_method(name)
-      meth = @base._metasearch_methods[name]
-      singleton_class.instance_eval do
-        define_method(name) do
-          search_attributes[name]
-        end
+    def get_named_method_value(name)
+      search_attributes[name]
+    end
 
-        define_method("#{name}=") do |val|
-          search_attributes[name] = meth.cast_param(val)
-          if meth.validate(search_attributes[name])
-            return_value = meth.evaluate(@relation, search_attributes[name])
-            if return_value.is_a?(ActiveRecord::Relation)
-              @relation = return_value
-            else
-              raise NonRelationReturnedError, "Custom search methods must return an ActiveRecord::Relation. #{name} returned a #{return_value.class}"
-            end
-          end
+    def set_named_method_value(name, val)
+      meth = @base._metasearch_methods[name]
+      search_attributes[name] = meth.cast_param(val)
+      if meth.validate(search_attributes[name])
+        return_value = meth.evaluate(@relation, search_attributes[name])
+        if return_value.is_a?(ActiveRecord::Relation)
+          @relation = return_value
+        else
+          raise NonRelationReturnedError, "Custom search methods must return an ActiveRecord::Relation. #{name} returned a #{return_value.class}"
         end
       end
     end
 
-    def build_attribute_method(attribute, predicate)
-      singleton_class.instance_eval do
-        define_method("#{attribute}_#{predicate}") do
-          search_attributes["#{attribute}_#{predicate}"]
-        end
+    def get_attribute_method_value(attribute, predicate)
+      search_attributes["#{attribute}_#{predicate}"]
+    end
 
-        define_method("#{attribute}_#{predicate}=") do |val|
-          where = Where.new(predicate)
-          attributes = attribute.split(/_or_/)
-          search_attributes["#{attribute}_#{predicate}"] = cast_attributes(where.cast || column_type(attributes.first), val)
-          if where.validate(search_attributes["#{attribute}_#{predicate}"])
-            arel_attributes = attributes.map {|a| get_attribute(a)}
-            @relation = where.evaluate(@relation, arel_attributes, search_attributes["#{attribute}_#{predicate}"])
-          end
-        end
+    def set_attribute_method_value(attribute, predicate, val)
+      where = Where.new(predicate)
+      attributes = attribute.split(/_or_/)
+      search_attributes["#{attribute}_#{predicate}"] = cast_attributes(where.cast || column_type(attributes.first), val)
+      if where.validate(search_attributes["#{attribute}_#{predicate}"])
+        arel_attributes = attributes.map {|a| get_attribute(a)}
+        @relation = where.evaluate(@relation, arel_attributes, search_attributes["#{attribute}_#{predicate}"])
       end
     end
 
