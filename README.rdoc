@@ -76,6 +76,21 @@ This means that while starting from a Company model, as above, you could do
 Company -> :developers -> :notes -> :developer -> :company, which has gotten you right
 back where you started, but "travels" through 5 models total.
 
+Polymorphic associations work a little differently, if you have the following models...
+
+  class Developer < ActiveRecord::Base
+    has_many :projects, :as => :owner
+  end
+  
+  class Project < ActiveRecord::Base
+    belongs_to :owner, :polymorphic => true
+  end
+
+...you can search them using Searchlogic-like conditions, specifying the type of the belongs_to. For example,
+to search the Projects by developer name:
+
+  <%= f.text_field :owner_developer_type_name_contains %>
+
 === Adding a new Where
 
 If none of the built-in search criteria work for you, you can add a new Where (or 5). To do so,
