@@ -51,7 +51,7 @@ module MetaSearch
           val.in_time_zone rescue nil
         end
       when *BOOLEANS
-        if val.is_a?(String) && value.blank?
+        if val.is_a?(String) && val.blank?
           nil
         else
           TRUE_VALUES.include?(val)
