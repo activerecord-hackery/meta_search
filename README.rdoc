@@ -17,7 +17,9 @@ In your controller:
 
   def index
     @search = Article.search(params[:search])
-    @articles = @search.all   # or @search.relation to lazy load in view
+    @articles = @search.all   # load all matching records
+    # @articles = @search.relation # Retrieve the relation, to lazy-load in view
+    # @articles = @search.paginate(:page => params[:page]) # Who doesn't love will_paginate?
   end
 
 In your view:
@@ -31,7 +33,72 @@ In your view:
     <%= f.submit %>
   <% end %>
 
-The default Where types are listed at MetaSearch::Where. Options for the search method are documented at MetaSearch::Searches::Base.
+Options for the search method are documented at MetaSearch::Searches::Base.
+
+== "Wheres", and what they're good for
+
+Wheres are how MetaSearch does its magic. Wheres have a name (and possible aliases) which are
+appended to your model and association attributes. When you instantiate a MetaSearch::Builder
+against a model (manually or by calling your model's +search+ method) the builder responds to
+methods named for your model's attributes and associations, suffixed by the name of the Where.
+
+These are the default Wheres, broken down by the types of ActiveRecord columns they can search
+against:
+
+=== All data types
+
+* _equals_ (alias: _eq_) - Just as it sounds.
+* _does_not_equal_ (aliases: _ne_, _noteq_) - The opposite of equals, oddly enough.
+* _in_ - Takes an array, matches on equality with any of the items in the array.
+* _not_in_ (aliases: _ni_, _notin_) - Like above, but negated.
+* _is_null_ - The column has an SQL NULL value.
+* _is_not_null_ - The column contains anything but NULL.
+
+=== Strings
+
+* _contains_ (aliases: _like_, _matches_) - Substring match.
+* _does_not_contain_ (aliases: _nlike_, _nmatches_) - Negative substring match.
+* _starts_with_ (alias: _sw_) - Match strings beginning with the entered term.
+* _does_not_start_with_ (alias: _dnsw_) - The opposite of above.
+* _ends_with_ (alias: _ew_) - Match strings ending with the entered term.
+* _does_not_end_with_ (alias: _dnew_) - Negative of above.
+
+=== Numbers, dates, and times
+
+* _greater_than_ (alias: _gt_) - Greater than.
+* _greater_than_or_equal_to_ (aliases: _gte_, _gteq_) - Greater than or equal to.
+* _less_than_ (alias: _lt_) - Less than.
+* _less_than_or_equal_to_ (aliases: _lte_, _lteq_) - Less than or equal to.
+
+=== Booleans
+
+* _is_true_ - Is true. Useful for a checkbox like "only show admin users".
+* _is_false_ - The complement of _is_true_.
+
+=== Non-boolean data types
+
+* _is_present_ - As with _is_true_, useful with a checkbox. Not NULL or the empty string.
+* _is_blank_ - Returns records with a value of NULL or the empty string in the column.
+
+So, given a model like this...
+
+  class Article < ActiveRecord::Base
+    belongs_to :author
+    has_many :comments
+    has_many :moderations, :through => :comments
+  end
+
+...you might end up with attributes like <tt>title_contains</tt>,
+<tt>comments_title_starts_with</tt>, <tt>moderations_value_less_than</tt>,
+<tt>author_name_equals</tt>, and so on.
+
+Additionally, all of the above predicate types also have an _any and _all version, which
+expects an array of the corresponding parameter type, and requires any or all of the
+parameters to be a match, respectively. So:
+
+  Article.search :author_name_starts_with_any => ['Jim', 'Bob', 'Fred']
+
+will match articles authored by Jimmy, Bobby, or Freddy, but not Winifred.
 
 == Advanced usage
 
@@ -130,7 +197,7 @@ attribute name. For example:
   <%= f.text_field :commentable_article_type_body_contains %>
 
 If you'd like to match on multiple types of polymorphic associations, you can join them
-with <tt>_or_</tt>, just like any other conditions:
+with \_or_, just like any other conditions:
 
   <%= f.text_field :commentable_article_type_body_or_commentable_post_type_body_contains %>
 
@@ -140,7 +207,7 @@ search fields.
 
 === Adding a new Where
 
-If none of the built-in search criteria work for you, you can add a new Where (or 5). To do so,
+If none of the built-in search criteria work for you, you can add new Wheres. To do so,
 create an initializer (<tt>/config/initializers/meta_search.rb</tt>, for instance) and add lines
 like:
 

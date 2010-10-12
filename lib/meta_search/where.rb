@@ -15,6 +15,8 @@ module MetaSearch
   # * _does_not_equal_ (aliases: _ne_, _noteq_) - The opposite of equals, oddly enough.
   # * _in_ - Takes an array, matches on equality with any of the items in the array.
   # * _not_in_ (aliases: _ni_, _notin_) - Like above, but negated.
+  # * _is_null_ - The column has an SQL NULL value.
+  # * _is_not_null_ - The column contains anything but NULL.
   #
   # === Strings
   #

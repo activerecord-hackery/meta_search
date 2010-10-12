@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{meta_search}
-  s.version = "0.9.6"
+  s.version = "0.9.7"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-09-29}
+  s.date = %q{2010-10-11}
   s.description = %q{
       Allows simple search forms to be created against an AR3 model
       and its associations, has useful view helpers for sort links
@@ -37,6 +37,7 @@ Gem::Specification.new do |s|
      "lib/meta_search/helpers/form_builder.rb",
      "lib/meta_search/helpers/form_helper.rb",
      "lib/meta_search/helpers/url_helper.rb",
+     "lib/meta_search/join_dependency.rb",
      "lib/meta_search/method.rb",
      "lib/meta_search/model_compatibility.rb",
      "lib/meta_search/searches/active_record.rb",
