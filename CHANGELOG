@@ -1,3 +1,6 @@
+Changes since 0.9.7 (2010-10-12):
+  * Play nicely regardless of MetaWhere/MetaSearch load order.
+
 Changes since 0.9.6 (2010-09-29):
   * Support _or_-separated conditions. I'm not crazy about 'em, but it's
     an oft-requested feature.

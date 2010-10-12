@@ -257,7 +257,7 @@ module MetaSearch
         assoc.parent == parent
       end
       unless found_association
-        @join_dependency.send(:build, association, parent, Arel::OuterJoin, klass)
+        @join_dependency.send(:build_with_metasearch, association, parent, Arel::OuterJoin, klass)
         found_association = @join_dependency.join_associations.last
         @relation = @relation.joins(found_association)
       end

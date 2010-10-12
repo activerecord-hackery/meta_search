@@ -4,7 +4,6 @@ module MetaSearch
 
     def self.included(base)
       base.class_eval do
-        alias_method_chain :build, :metasearch
         alias_method_chain :graft, :metasearch
       end
     end
@@ -12,7 +11,11 @@ module MetaSearch
     def graft_with_metasearch(*associations)
       associations.each do |association|
         join_associations.detect {|a| association == a} ||
-        build(association.reflection.name, association.find_parent_in(self) || join_base, association.join_class, association.reflection.klass)
+        (
+          association.class == MetaSearch::PolymorphicJoinAssociation ?
+          build_with_metasearch(association.reflection.name, association.find_parent_in(self) || join_base, association.join_class, association.reflection.klass) :
+          build(association.reflection.name, association.find_parent_in(self) || join_base, association.join_class)
+        )
       end
       self
     end
@@ -33,7 +36,7 @@ module MetaSearch
             @joins << build_join_association(reflection, parent).with_join_class(join_class)
           end
         else
-          build_without_metasearch(association, parent, join_class)
+          build(association, parent, join_class) # Shouldn't get here.
         end
       end
 
