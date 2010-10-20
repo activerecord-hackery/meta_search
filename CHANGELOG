@@ -1,5 +1,6 @@
 Changes since 0.9.7 (2010-10-12):
   * Play nicely regardless of MetaWhere/MetaSearch load order.
+  * Big fix - stop altering the supplied hash in Builder#build.
 
 Changes since 0.9.6 (2010-09-29):
   * Support _or_-separated conditions. I'm not crazy about 'em, but it's
