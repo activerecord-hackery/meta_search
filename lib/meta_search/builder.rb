@@ -93,8 +93,8 @@ module MetaSearch
     # Build the search with the given search options. Options are in the form of a hash
     # with keys matching the names creted by the Builder's "wheres" as outlined in
     # MetaSearch::Where
-    def build(opts)
-      opts ||= {}
+    def build(option_hash)
+      opts = option_hash.dup || {}
       @relation = @base.scoped
       opts.stringify_keys!
       opts = collapse_multiparameter_options(opts)
