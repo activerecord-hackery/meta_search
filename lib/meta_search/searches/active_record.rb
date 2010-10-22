@@ -25,11 +25,9 @@ module MetaSearch::Searches
       # MetaSearch::Builder, which behaves pretty much like an ActiveRecord::Relation,
       # in that it doesn't actually query the database until you do something that
       # requires it to do so.
-      def metasearch(opts = {})
-        opts ||= {} # to catch nil params
-        search_options = opts.delete(:search_options) || {}
-        builder = MetaSearch::Builder.new(self, search_options)
-        builder.build(opts)
+      def metasearch(params = nil, opts = nil)
+        builder = MetaSearch::Builder.new(self, opts || {})
+        builder.build(params || {})
       end
 
       alias_method :search, :metasearch unless respond_to?(:search)

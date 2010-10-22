@@ -22,7 +22,7 @@ module MetaSearch
     include ModelCompatibility
     include Utility
 
-    attr_reader :base, :search_attributes, :join_dependency, :errors
+    attr_reader :base, :search_key, :search_attributes, :join_dependency, :errors
     delegate *RELATION_METHODS + [:to => :relation]
 
     # Initialize a new Builder. Requires a base model to wrap, and supports a couple of options
@@ -30,7 +30,7 @@ module MetaSearch
     def initialize(base_or_relation, opts = {})
       @relation = base_or_relation.scoped
       @base = @relation.klass
-      @opts = opts
+      @search_key = opts[:search_key] ? opts[:search_key].to_s : 'search'
       @join_dependency = build_join_dependency
       @search_attributes = {}
       @errors = ActiveModel::Errors.new(self)

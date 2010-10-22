@@ -200,6 +200,20 @@ class TestViewHelpers < ActionView::TestCase
     end
   end
 
+  context "A company search form with an alternate search_key" do
+    setup do
+      @s = Company.search({}, :search_key => 'searchy_mcsearchhead')
+      form_for @s do |f|
+        @f = f
+      end
+    end
+
+    should "generate a sort link that places meta_sort param under the specified key" do
+      assert_match /searchy_mcsearchhead/,
+                   @f.sort_link(:name, :controller => 'companies')
+    end
+  end
+
   context "A company search" do
     setup do
       @s = Company.search

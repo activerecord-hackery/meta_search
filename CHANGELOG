@@ -1,3 +1,6 @@
+Changes since 0.9.8 (2010-10-20):
+  * sort_link uses search_key from builder. Search_key defaults to "search"
+
 Changes since 0.9.7 (2010-10-12):
   * Play nicely regardless of MetaWhere/MetaSearch load order.
   * Big fix - stop altering the supplied hash in Builder#build.

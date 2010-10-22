@@ -28,7 +28,7 @@ module MetaSearch
         css = ['sort_link', current_order].compact.join(' ')
         html_options[:class] = [css, html_options[:class]].compact.join(' ')
         options.merge!(
-          'search' => builder.search_attributes.merge(
+          builder.search_key => builder.search_attributes.merge(
             'meta_sort' => [attr_name, new_order].join('.')
           )
         )
