@@ -25,6 +25,8 @@ end
 
 Fixtures.create_fixtures(FIXTURES_PATH, ActiveRecord::Base.connection.tables)
 
+I18n.load_path = Dir[File.join(File.dirname(__FILE__), 'locales', '*.{rb,yml}')]
+
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 

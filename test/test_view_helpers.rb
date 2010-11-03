@@ -198,6 +198,21 @@ class TestViewHelpers < ActionView::TestCase
       assert_no_match /Created at &#9650;/,
                       @f.sort_link(:created_at, :controller => 'companies')
     end
+
+    context "and a localization" do
+      setup do
+        I18n.locale = :es
+      end
+
+      teardown do
+        I18n.locale = nil
+      end
+
+      should "use the localized name for the attribute" do
+        assert_match /Nombre/,
+                     @f.sort_link(:name, :controller => 'companies')
+      end
+    end
   end
 
   context "A company search form with an alternate search_key" do
