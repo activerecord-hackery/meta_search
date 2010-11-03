@@ -19,7 +19,7 @@ module MetaSearch
       def sort_link(builder, attribute, *args)
         raise ArgumentError, "Need a MetaSearch::Builder search object as first param!" unless builder.is_a?(MetaSearch::Builder)
         attr_name = attribute.to_s
-        name = (args.size > 0 && !args.first.is_a?(Hash)) ? args.shift.to_s : attr_name.humanize
+        name = (args.size > 0 && !args.first.is_a?(Hash)) ? args.shift.to_s : Kernel.const_get(builder.base.name).human_attribute_name(attribute).humanize
         prev_attr, prev_order = builder.search_attributes['meta_sort'].to_s.split('.')
         current_order = prev_attr == attr_name ? prev_order : nil
         new_order = current_order == 'asc' ? 'desc' : 'asc'
