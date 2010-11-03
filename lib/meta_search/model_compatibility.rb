@@ -1,4 +1,5 @@
 module MetaSearch
+
   module ModelCompatibility
 
     def self.included(base)
