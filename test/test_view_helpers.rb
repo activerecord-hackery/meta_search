@@ -215,6 +215,21 @@ class TestViewHelpers < ActionView::TestCase
     end
   end
 
+  context "A developer search form sorted by a custom sort method" do
+    setup do
+      @s = Developer.search
+      @s.meta_sort = 'sort_by_salary_and_name.asc'
+      form_for @s do |f|
+        @f = f
+      end
+    end
+
+    should "generate a sort link with humanized text" do
+      assert_match /Sort by salary and name &#9650;/,
+                   @f.sort_link(:sort_by_salary_and_name, :controller => 'developers')
+    end
+  end
+
   context "A company search form with an alternate search_key" do
     setup do
       @s = Company.search({}, :search_key => 'searchy_mcsearchhead')
