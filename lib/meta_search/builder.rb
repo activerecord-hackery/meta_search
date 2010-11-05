@@ -42,19 +42,23 @@ module MetaSearch
     end
 
     def get_column(column, base = @base)
-      if base._metasearch_include_attributes.blank?
-        base.columns_hash[column.to_s] unless base._metasearch_exclude_attributes.include?(column.to_s)
-      else
-        base.columns_hash[column.to_s] if base._metasearch_include_attributes.include?(column.to_s)
-      end
+      base.columns_hash[column.to_s] unless base_excludes_attribute(base, column)
+    end
+
+    def base_excludes_attribute(base, column)
+      base._metasearch_include_attributes.blank? ?
+        base._metasearch_exclude_attributes.include?(column.to_s) :
+        !base._metasearch_include_attributes.include?(column.to_s)
     end
 
     def get_association(assoc, base = @base)
-      if base._metasearch_include_associations.blank?
-        base.reflect_on_association(assoc.to_sym) unless base._metasearch_exclude_associations.include?(assoc.to_s)
-      else
-        base.reflect_on_association(assoc.to_sym) if base._metasearch_include_associations.include?(assoc.to_s)
-      end
+      base.reflect_on_association(assoc.to_sym) unless base_excludes_association(base, assoc)
+    end
+
+    def base_excludes_association(base, assoc)
+      base._metasearch_include_associations.blank? ?
+        base._metasearch_exclude_associations.include?(assoc.to_s) :
+        !base._metasearch_include_associations.include?(assoc.to_s)
     end
 
     def get_attribute(name, parent = @join_dependency.join_base)
@@ -103,9 +107,8 @@ module MetaSearch
     end
 
     def respond_to?(method_id, include_private = false)
-      return true if super # Hopefully we've already defined the method.
+      return true if super
 
-      # Curses! Looks like we'll need to do this the hard way.
       method_name = method_id.to_s
       if RELATION_METHODS.map(&:to_s).include?(method_name)
         true
@@ -123,6 +126,22 @@ module MetaSearch
 
     private
 
+    def assign_attributes(opts)
+      opts.each_pair do |k, v|
+        self.send("#{k}=", v)
+      end
+    end
+
+    def enforce_join_depth_limit!
+      raise JoinDepthError, "Maximum join depth of #{MAX_JOIN_DEPTH} exceeded." if @join_dependency.join_associations.detect {|ja|
+        gauge_depth_of_join_association(ja) > MAX_JOIN_DEPTH
+      }
+    end
+
+    def gauge_depth_of_join_association(ja)
+      1 + (ja.respond_to?(:parent) ? gauge_depth_of_join_association(ja.parent) : 0)
+    end
+
     def method_missing(method_id, *args, &block)
       method_name = method_id.to_s
       if method_name =~ /^meta_sort=?$/
@@ -139,6 +158,114 @@ module MetaSearch
       else
         super
       end
+    end
+
+    def matches_named_method(name)
+      method_name = name.to_s.sub(/\=$/, '')
+      return method_name if @base._metasearch_methods.has_key?(method_name)
+    end
+
+    def matches_attribute_method(method_id)
+      method_name = preferred_method_name(method_id)
+      where = Where.new(method_id) rescue nil
+      return nil unless method_name && where
+      match = method_name.match("^(.*)_(#{where.name})=?$")
+      attribute, predicate = match.captures
+      attributes = attribute.split(/_or_/)
+      if attributes.all? {|a| where.types.include?(column_type(a))}
+        return match
+      end
+      nil
+    end
+
+    def get_sort
+      search_attributes['meta_sort']
+    end
+
+    def set_sort(val)
+      column, direction = val.split('.')
+      direction ||= 'asc'
+      if ['asc','desc'].include?(direction) && attribute = get_attribute(column)
+        search_attributes['meta_sort'] = val
+        @relation = @relation.order(attribute.send(direction).to_sql)
+      end
+    end
+
+    def get_named_method_value(name)
+      search_attributes[name]
+    end
+
+    def set_named_method_value(name, val)
+      meth = @base._metasearch_methods[name]
+      search_attributes[name] = meth.cast_param(val)
+      if meth.validate(search_attributes[name])
+        return_value = meth.evaluate(@relation, search_attributes[name])
+        if return_value.is_a?(ActiveRecord::Relation)
+          @relation = return_value
+        else
+          raise NonRelationReturnedError, "Custom search methods must return an ActiveRecord::Relation. #{name} returned a #{return_value.class}"
+        end
+      end
+    end
+
+    def get_attribute_method_value(attribute, predicate)
+      search_attributes["#{attribute}_#{predicate}"]
+    end
+
+    def set_attribute_method_value(attribute, predicate, val)
+      where = Where.new(predicate)
+      attributes = attribute.split(/_or_/)
+      search_attributes["#{attribute}_#{predicate}"] = cast_attributes(where.cast || column_type(attributes.first), val)
+      if where.validate(search_attributes["#{attribute}_#{predicate}"])
+        arel_attributes = attributes.map {|a| get_attribute(a)}
+        @relation = where.evaluate(@relation, arel_attributes, search_attributes["#{attribute}_#{predicate}"])
+      end
+    end
+
+    def column_type(name, base = @base)
+      type = nil
+      if column = get_column(name, base)
+        type = column.type
+      elsif (segments = name.split(/_/)).size > 1
+        type = type_from_association_segments(segments, base)
+      end
+      type
+    end
+
+    def type_from_association_segments(segments, base)
+      remainder = []
+      found_assoc = nil
+      type = nil
+      while remainder.unshift(segments.pop) && segments.size > 0 && !found_assoc do
+        if found_assoc = get_association(segments.join('_'), base)
+          if found_assoc.options[:polymorphic]
+            unless delimiter = remainder.index('type')
+              raise PolymorphicAssociationMissingTypeError, "Polymorphic association specified without a type"
+            end
+            polymorphic_class, attribute_name = remainder[0...delimiter].join('_'),
+                                                remainder[delimiter + 1...remainder.size].join('_')
+            polymorphic_class = polymorphic_class.classify.constantize
+            type = column_type(attribute_name, polymorphic_class)
+          else
+            type = column_type(remainder.join('_'), found_assoc.klass)
+          end
+        end
+      end
+      type
+    end
+
+    def build_or_find_association(association, parent = @join_dependency.join_base, klass = nil)
+      found_association = @join_dependency.join_associations.detect do |assoc|
+        assoc.reflection.name == association.to_sym &&
+        assoc.reflection.klass == klass &&
+        assoc.parent == parent
+      end
+      unless found_association
+        @join_dependency.send(:build_with_metasearch, association, parent, Arel::OuterJoin, klass)
+        found_association = @join_dependency.join_associations.last
+        @relation = @relation.joins(found_association)
+      end
+      found_association
     end
 
     def build_join_dependency
@@ -176,156 +303,5 @@ module MetaSearch
       arel.joins(arel)
     end
 
-    def array_of_strings?(o)
-      o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
-    end
-
-    def get_sort
-      search_attributes['meta_sort']
-    end
-
-    def set_sort(val)
-      column, direction = val.split('.')
-      direction ||= 'asc'
-      if ['asc','desc'].include?(direction) && attribute = get_attribute(column)
-        search_attributes['meta_sort'] = val
-        @relation = @relation.order(attribute.send(direction).to_sql)
-      end
-    end
-
-    def column_type(name, base = @base)
-      type = nil
-      if column = get_column(name, base)
-        type = column.type
-      elsif (segments = name.split(/_/)).size > 1
-        remainder = []
-        found_assoc = nil
-        while remainder.unshift(segments.pop) && segments.size > 0 && !found_assoc do
-          if found_assoc = get_association(segments.join('_'), base)
-            if found_assoc.options[:polymorphic]
-              unless delimiter = remainder.index('type')
-                raise PolymorphicAssociationMissingTypeError, "Polymorphic association specified without a type"
-              end
-              polymorphic_class, attribute_name = remainder[0...delimiter].join('_'),
-                                                  remainder[delimiter + 1...remainder.size].join('_')
-              polymorphic_class = polymorphic_class.classify.constantize
-              type = column_type(attribute_name, polymorphic_class)
-            else
-              type = column_type(remainder.join('_'), found_assoc.klass)
-            end
-          end
-        end
-      end
-      type
-    end
-
-    def get_named_method_value(name)
-      search_attributes[name]
-    end
-
-    def set_named_method_value(name, val)
-      meth = @base._metasearch_methods[name]
-      search_attributes[name] = meth.cast_param(val)
-      if meth.validate(search_attributes[name])
-        return_value = meth.evaluate(@relation, search_attributes[name])
-        if return_value.is_a?(ActiveRecord::Relation)
-          @relation = return_value
-        else
-          raise NonRelationReturnedError, "Custom search methods must return an ActiveRecord::Relation. #{name} returned a #{return_value.class}"
-        end
-      end
-    end
-
-    def get_attribute_method_value(attribute, predicate)
-      search_attributes["#{attribute}_#{predicate}"]
-    end
-
-    def set_attribute_method_value(attribute, predicate, val)
-      where = Where.new(predicate)
-      attributes = attribute.split(/_or_/)
-      search_attributes["#{attribute}_#{predicate}"] = cast_attributes(where.cast || column_type(attributes.first), val)
-      if where.validate(search_attributes["#{attribute}_#{predicate}"])
-        arel_attributes = attributes.map {|a| get_attribute(a)}
-        @relation = where.evaluate(@relation, arel_attributes, search_attributes["#{attribute}_#{predicate}"])
-      end
-    end
-
-    def build_or_find_association(association, parent = @join_dependency.join_base, klass = nil)
-      found_association = @join_dependency.join_associations.detect do |assoc|
-        assoc.reflection.name == association.to_sym &&
-        assoc.reflection.klass == klass &&
-        assoc.parent == parent
-      end
-      unless found_association
-        @join_dependency.send(:build_with_metasearch, association, parent, Arel::OuterJoin, klass)
-        found_association = @join_dependency.join_associations.last
-        @relation = @relation.joins(found_association)
-      end
-      found_association
-    end
-
-    def enforce_join_depth_limit!
-      raise JoinDepthError, "Maximum join depth of #{MAX_JOIN_DEPTH} exceeded." if @join_dependency.join_associations.detect {|ja|
-        gauge_depth_of_join_association(ja) > MAX_JOIN_DEPTH
-      }
-    end
-
-    def gauge_depth_of_join_association(ja)
-      1 + (ja.respond_to?(:parent) ? gauge_depth_of_join_association(ja.parent) : 0)
-    end
-
-    def matches_named_method(name)
-      method_name = name.to_s.sub(/\=$/, '')
-      return method_name if @base._metasearch_methods.has_key?(method_name)
-    end
-
-    def matches_attribute_method(method_id)
-      method_name = preferred_method_name(method_id)
-      where = Where.new(method_id) rescue nil
-      return nil unless method_name && where
-      match = method_name.match("^(.*)_(#{where.name})=?$")
-      attribute, predicate = match.captures
-      attributes = attribute.split(/_or_/)
-      if attributes.all? {|a| where.types.include?(column_type(a))}
-        return match
-      end
-      nil
-    end
-
-    def preferred_method_name(method_id)
-      method_name = method_id.to_s
-      where = Where.new(method_name) rescue nil
-      return nil unless where
-      where.aliases.each do |a|
-        break if method_name.sub!(/#{a}(=?)$/, "#{where.name}\\1")
-      end
-      method_name
-    end
-
-    def assign_attributes(opts)
-      opts.each_pair do |k, v|
-        self.send("#{k}=", v)
-      end
-    end
-
-    def type_for(attribute)
-      column = self.column(attribute)
-      column.type if column
-    end
-
-    def class_for(attribute)
-      column = self.column(attribute)
-      column.klass if column
-    end
-
-    def association_type_for(association, attribute)
-      column = self.association_column(association, attribute)
-      column.type if column
-    end
-
-    def association_class_for(association, attribute)
-      column = self.association_column(association, attribute)
-      column.klass if column
-    end
   end
 end

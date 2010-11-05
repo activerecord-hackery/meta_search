@@ -8,6 +8,20 @@ module MetaSearch
 
     private
 
+    def preferred_method_name(method_id)
+      method_name = method_id.to_s
+      where = Where.new(method_name) rescue nil
+      return nil unless where
+      where.aliases.each do |a|
+        break if method_name.sub!(/#{a}(=?)$/, "#{where.name}\\1")
+      end
+      method_name
+    end
+
+    def array_of_strings?(o)
+       o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
+     end
+
     def array_of_arrays?(vals)
       vals.is_a?(Array) && vals.first.is_a?(Array)
     end
