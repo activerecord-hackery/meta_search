@@ -12,12 +12,13 @@ module MetaSearch
         base.class_eval do
           class_attribute :_metasearch_include_attributes, :_metasearch_exclude_attributes
           class_attribute :_metasearch_include_associations, :_metasearch_exclude_associations
-          class_attribute :_metasearch_methods
+          class_attribute :_metasearch_methods, :_metasearch_sorts
           self._metasearch_include_attributes =
             self._metasearch_exclude_attributes =
             self._metasearch_exclude_associations =
             self._metasearch_include_associations = []
           self._metasearch_methods = {}
+          self._metasearch_sorts = []
         end
       end
 
@@ -88,6 +89,14 @@ module MetaSearch
             self._metasearch_methods[arg] = MetaSearch::Method.new(arg, opts)
           end
         end
+
+        alias_method :search_method, :search_methods
+
+        def sort_methods(*args)
+          self._metasearch_sorts += args.flatten.map(&:to_s).uniq
+        end
+
+        alias_method :sort_method, :sort_methods
       end
     end
   end

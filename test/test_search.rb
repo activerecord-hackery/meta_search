@@ -298,6 +298,17 @@ class TestSearch < Test::Unit::TestCase
         end
       end
 
+      context "sorted by salary and name in descending order" do
+        setup do
+          @s.meta_sort = 'sort_by_salary_and_name.desc'
+        end
+
+        should "sort by salary and name in descending order" do
+          assert_equal Developer.order('salary DESC, name DESC').all,
+                       @s.all
+        end
+      end
+
       context "where developer is Bob-approved" do
         setup do
           @s.notes_note_equals = "A straight shooter with upper management written all over him."
