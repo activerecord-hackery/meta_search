@@ -13,8 +13,8 @@ module MetaSearch
         join_associations.detect {|a| association == a} ||
         (
           association.class == MetaSearch::PolymorphicJoinAssociation ?
-          build_with_metasearch(association.reflection.name, association.find_parent_in(self) || join_base, association.join_class, association.reflection.klass) :
-          build(association.reflection.name, association.find_parent_in(self) || join_base, association.join_class)
+          build_with_metasearch(association.reflection.name, association.find_parent_in(self) || join_base, association.join_type, association.reflection.klass) :
+          build(association.reflection.name, association.find_parent_in(self) || join_base, association.join_type)
         )
       end
       self
@@ -22,7 +22,7 @@ module MetaSearch
 
     protected
 
-      def build_with_metasearch(association, parent = nil, join_class = Arel::InnerJoin, polymorphic_class = nil)
+      def build_with_metasearch(association, parent = nil, join_type = Arel::InnerJoin, polymorphic_class = nil)
         parent ||= @joins.last
         case association
         when Symbol, String
@@ -30,13 +30,17 @@ module MetaSearch
           raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?"
           if reflection.options[:polymorphic]
             @reflections << reflection
-            @joins << build_polymorphic_join_association(reflection, parent, polymorphic_class).with_join_class(join_class)
+            association = build_polymorphic_join_association(reflection, parent, polymorphic_class)
+            association.join_type = join_type
+            @joins << association
           else
             @reflections << reflection
-            @joins << build_join_association(reflection, parent).with_join_class(join_class)
+            association = build_join_association(reflection, parent)
+            association.join_type = join_type
+            @joins << association
           end
         else
-          build(association, parent, join_class) # Shouldn't get here.
+          build(association, parent, join_type) # Shouldn't get here.
         end
       end
 
@@ -59,7 +63,7 @@ module MetaSearch
       @parent_table_name  = @parent.active_record.table_name
       @aliased_table_name = aliased_table_name_for(table_name)
       @join               = nil
-      @join_class         = Arel::InnerJoin
+      @join_type        = Arel::InnerJoin
     end
 
     def ==(other)
