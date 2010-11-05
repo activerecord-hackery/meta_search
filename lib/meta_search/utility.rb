@@ -19,8 +19,8 @@ module MetaSearch
     end
 
     def array_of_strings?(o)
-       o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
-     end
+      o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
+    end
 
     def array_of_arrays?(vals)
       vals.is_a?(Array) && vals.first.is_a?(Array)
