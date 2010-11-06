@@ -22,7 +22,7 @@ module MetaSearch
 
     protected
 
-      def build_with_metasearch(association, parent = nil, join_type = Arel::InnerJoin, polymorphic_class = nil)
+      def build_with_metasearch(association, parent = nil, join_type = Arel::Nodes::InnerJoin, polymorphic_class = nil)
         parent ||= @joins.last
         case association
         when Symbol, String
