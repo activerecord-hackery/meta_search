@@ -1,4 +1,5 @@
 Changes since 0.9.8 (2010-10-20):
+  * ARel 2.x and Rails 3.0.2 compatability
   * sort_link uses search_key from builder. Search_key defaults to "search"
   * sort_link will localize attribute names.
   * You can now create two scopes on your model named sort_by_something_asc
