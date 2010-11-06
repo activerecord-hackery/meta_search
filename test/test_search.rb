@@ -300,7 +300,7 @@ class TestSearch < Test::Unit::TestCase
 
       context "sorted by salary and name in descending order" do
         setup do
-          @s.meta_sort = 'sort_by_salary_and_name.desc'
+          @s.meta_sort = 'salary_and_name.desc'
         end
 
         should "sort by salary and name in descending order" do
