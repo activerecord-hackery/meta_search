@@ -63,7 +63,7 @@ module MetaSearch
       @parent_table_name  = @parent.active_record.table_name
       @aliased_table_name = aliased_table_name_for(table_name)
       @join               = nil
-      @join_type        = Arel::InnerJoin
+      @join_type        = Arel::Nodes::InnerJoin
     end
 
     def ==(other)
