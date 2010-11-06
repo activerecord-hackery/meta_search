@@ -1,5 +1,9 @@
 Changes since 0.9.8 (2010-10-20):
   * sort_link uses search_key from builder. Search_key defaults to "search"
+  * sort_link will localize attribute names.
+  * You can now create two scopes on your model named sort_by_something_asc
+    and sort_by_something_desc, and sort_link will then allow you to specify
+    :something as a parameter, then use your scope to perform custom sorting.
 
 Changes since 0.9.7 (2010-10-12):
   * Play nicely regardless of MetaWhere/MetaSearch load order.

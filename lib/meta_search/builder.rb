@@ -192,6 +192,15 @@ module MetaSearch
         elsif attribute = get_attribute(column)
           search_attributes['meta_sort'] = val
           @relation = @relation.order(attribute.send(direction).to_sql)
+        elsif column.scan('_and_').present?
+          attribute_names = column.split('_and_')
+          attributes = attribute_names.map {|n| get_attribute(n)}
+          if attribute_names.size == attributes.compact.size # We found all attributes
+            search_attributes['meta_sort'] = val
+            attributes.each do |attribute|
+              @relation = @relation.order(attribute.send(direction).to_sql)
+            end
+          end
         end
       end
     end

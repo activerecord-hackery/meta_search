@@ -228,6 +228,36 @@ class TestViewHelpers < ActionView::TestCase
       assert_match /Salary and name &#9650;/,
                    @f.sort_link(:salary_and_name, :controller => 'developers')
     end
+
+    should "sort results as expected" do
+      assert_equal Developer.order('salary ASC, name ASC'),
+                   @s.all
+    end
+  end
+
+  context "A developer search form sorted by multiple columns" do
+    setup do
+      @s = Developer.search
+      @s.meta_sort = 'name_and_salary.asc'
+      form_for @s do |f|
+        @f = f
+      end
+    end
+
+    should "generate a sort link with humanized text" do
+      assert_match /Name and salary &#9650;/,
+                   @f.sort_link(:name_and_salary, :controller => 'developers')
+    end
+
+    should "order by both columns in the order they were specified" do
+      assert_match /ORDER BY "developers"."name" ASC, "developers"."salary" ASC/,
+                   @s.to_sql
+    end
+
+    should "return expected results" do
+      assert_equal Developer.order('name ASC, salary ASC').all,
+                   @s.all
+    end
   end
 
   context "A company search form with an alternate search_key" do

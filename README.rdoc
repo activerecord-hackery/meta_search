@@ -309,12 +309,26 @@ Normally, you won't supply this parameter yourself, but instead will use the hel
 <tt>sort_link</tt> in your views, like so:
 
   <%= sort_link @search, :title %>
-  <%= sort_link @search, :created_at %>
+
+Or, if in the context of a form_for against a MetaSearch::Builder:
+
+  <%= f.sort_link :title %>
 
 The <tt>@search</tt> object is the instance of MetaSearch::Builder you got back earlier from
 your controller. The other required parameter is the attribute name itself. Optionally,
 you can provide a string as a 3rd parameter to override the default link name, and then
 additional hashed for the +options+ and +html_options+ hashes for link_to.
+
+You can sort by more than one column as well, by creating a link like:
+
+  <%= sort_link :name_and_salary %>
+
+If you'd like to do a custom sort, you can do so by setting up two scopes in your model:
+
+  scope :sort_by_custom_name_asc, order('custom_name ASC')
+  scope :sort_by_custom_name_desc, order('custom_name DESC')
+
+You can then do <tt>sort_link @search, :custom_name</tt> and it will work as you expect.
 
 All <tt>sort_link</tt>-generated links will have the CSS class sort_link, as well as a
 directional class (ascending or descending) if the link is for a currently sorted column,
