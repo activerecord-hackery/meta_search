@@ -91,24 +91,12 @@ you're feeling especially appreciative. It'd help me justify this
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<meta_search>, [">= 0"])
-      s.add_runtime_dependency(%q<activerecord>, ["~> 3.0.2"])
-      s.add_runtime_dependency(%q<activesupport>, ["~> 3.0.2"])
-      s.add_runtime_dependency(%q<actionpack>, ["~> 3.0.2"])
-      s.add_runtime_dependency(%q<arel>, ["~> 2.0.2"])
-      s.add_development_dependency(%q<shoulda>, [">= 0"])
       s.add_development_dependency(%q<shoulda>, [">= 0"])
       s.add_runtime_dependency(%q<activerecord>, ["~> 3.0.2"])
       s.add_runtime_dependency(%q<activesupport>, ["~> 3.0.2"])
       s.add_runtime_dependency(%q<actionpack>, ["~> 3.0.2"])
       s.add_runtime_dependency(%q<arel>, ["~> 2.0.2"])
     else
-      s.add_dependency(%q<meta_search>, [">= 0"])
-      s.add_dependency(%q<activerecord>, ["~> 3.0.2"])
-      s.add_dependency(%q<activesupport>, ["~> 3.0.2"])
-      s.add_dependency(%q<actionpack>, ["~> 3.0.2"])
-      s.add_dependency(%q<arel>, ["~> 2.0.2"])
-      s.add_dependency(%q<shoulda>, [">= 0"])
       s.add_dependency(%q<shoulda>, [">= 0"])
       s.add_dependency(%q<activerecord>, ["~> 3.0.2"])
       s.add_dependency(%q<activesupport>, ["~> 3.0.2"])
@@ -116,12 +104,6 @@ you're feeling especially appreciative. It'd help me justify this
       s.add_dependency(%q<arel>, ["~> 2.0.2"])
     end
   else
-    s.add_dependency(%q<meta_search>, [">= 0"])
-    s.add_dependency(%q<activerecord>, ["~> 3.0.2"])
-    s.add_dependency(%q<activesupport>, ["~> 3.0.2"])
-    s.add_dependency(%q<actionpack>, ["~> 3.0.2"])
-    s.add_dependency(%q<arel>, ["~> 2.0.2"])
-    s.add_dependency(%q<shoulda>, [">= 0"])
     s.add_dependency(%q<shoulda>, [">= 0"])
     s.add_dependency(%q<activerecord>, ["~> 3.0.2"])
     s.add_dependency(%q<activesupport>, ["~> 3.0.2"])
