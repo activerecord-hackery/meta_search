@@ -1,3 +1,8 @@
+Changes since 0.9.9 (2010-11-15):
+  * Fix bug introduced by new polymorphic belongs_to association code in
+    honoring :url param to form_for
+  * Support localization of predicate text in labels
+
 Changes since 0.9.8 (2010-10-20):
   * ARel 2.x and Rails 3.0.2 compatability
   * sort_link uses search_key from builder. Search_key defaults to "search"
