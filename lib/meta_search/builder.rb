@@ -34,14 +34,6 @@ module MetaSearch
       @join_dependency = build_join_dependency
       @search_attributes = {}
       @errors = ActiveModel::Errors.new(self)
-
-      singleton_class.instance_eval "def base; #{@base} end"
-    end
-
-    # We need the base at the singleton_class level to play nice with i18n.
-    # If anyone's got a less evil solution than this, I'm all ears.
-    def class
-      singleton_class
     end
 
     def relation
