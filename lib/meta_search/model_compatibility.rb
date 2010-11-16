@@ -53,7 +53,7 @@ module MetaSearch
     def human_attribute_name(attribute, options = {})
       method_name = preferred_method_name(attribute)
 
-      defaults = [:"meta_search.attributes.#{base.model_name.i18n_key}.#{method_name || attribute}"]
+      defaults = [:"meta_search.attributes.#{klass.model_name.i18n_key}.#{method_name || attribute}"]
 
       if method_name
         predicate = Where.get(method_name)[:name]
@@ -64,7 +64,7 @@ module MetaSearch
       defaults << options.delete(:default) if options[:default]
       defaults << attribute.to_s.humanize
 
-      options.reverse_merge! :count => 1, :default => defaults, :attribute => base.human_attribute_name(predicate_attribute)
+      options.reverse_merge! :count => 1, :default => defaults, :attribute => klass.human_attribute_name(predicate_attribute)
       I18n.translate(defaults.shift, options)
     end
   end

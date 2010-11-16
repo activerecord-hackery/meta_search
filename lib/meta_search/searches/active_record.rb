@@ -4,6 +4,7 @@ require 'meta_search/builder'
 
 module MetaSearch
   module Searches
+
     module ActiveRecord
 
       def self.included(base)
@@ -27,7 +28,7 @@ module MetaSearch
         # in that it doesn't actually query the database until you do something that
         # requires it to do so.
         def metasearch(params = nil, opts = nil)
-          builder = MetaSearch::Builder.new(self, opts || {})
+          builder = Searches.for(self).new(self, opts || {})
           builder.build(params || {})
         end
 
@@ -91,6 +92,25 @@ module MetaSearch
 
         alias_method :search_method, :search_methods
       end
+    end
+
+    def self.for(klass)
+      DISPATCH[klass]
+    end
+
+    private
+
+    DISPATCH = Hash.new do |hash, klass|
+      class_name = klass.name.gsub('::', '_')
+      hash[klass] = module_eval <<-RUBY_EVAL
+        class #{class_name} < MetaSearch::Builder
+          def self.klass
+            ::#{klass}
+          end
+        end
+
+        #{class_name}
+      RUBY_EVAL
     end
   end
 end

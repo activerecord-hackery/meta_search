@@ -4,9 +4,9 @@ module MetaSearch
       def apply_form_for_options!(object_or_array, options)
         if object_or_array.is_a?(MetaSearch::Builder)
           builder = object_or_array
-          url = polymorphic_path(object_or_array.base)
+          options[:url] ||= polymorphic_path(object_or_array.base)
         elsif object_or_array.is_a?(Array) && (builder = object_or_array.detect {|o| o.is_a?(MetaSearch::Builder)})
-          url = polymorphic_path(object_or_array.map {|o| o.is_a?(MetaSearch::Builder) ? o.base : o})
+          options[:url] ||= polymorphic_path(object_or_array.map {|o| o.is_a?(MetaSearch::Builder) ? o.base : o})
         else
           super and return
         end
@@ -17,7 +17,6 @@ module MetaSearch
           :method => :get }
         options[:html] ||= {}
         options[:html].reverse_merge!(html_options)
-        options[:url] ||= url
       end
     end
   end
