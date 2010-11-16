@@ -45,6 +45,10 @@ class TestViewHelpers < ActionView::TestCase
       end
     end
 
+    should "not have the same base on their singleton class" do
+      assert @s1.class.base != @s2.class.base
+    end
+
     should "use the default localization for predicates" do
       assert_match /Name isn't null/, @f1.label(:name_is_not_null)
     end

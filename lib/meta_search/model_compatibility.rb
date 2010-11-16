@@ -51,8 +51,6 @@ module MetaSearch
     end
 
     def human_attribute_name(attribute, options = {})
-      base_name, attribute = attribute.match(/^base{(.*?)}(.*)/).captures
-      base = base_name.constantize
       method_name = preferred_method_name(attribute)
 
       defaults = [:"meta_search.attributes.#{base.model_name.i18n_key}.#{method_name || attribute}"]
