@@ -1,0 +1,23 @@
+en:
+  meta_search:
+    predicates:
+      equals: "%{attribute} equals"
+      does_not_equal: "%{attribute} doesn't equal"
+      contains: "%{attribute} contains"
+      does_not_contain: "%{attribute} doesn't contain"
+      starts_with: "%{attribute} starts with"
+      does_not_start_with: "%{attribute} doesn't start with"
+      ends_with: "%{attribute} ends with"
+      does_not_end_with: "%{attribute} doesn't end with"
+      greater_than: "%{attribute} greater than"
+      less_than: "%{attribute} less than"
+      greater_than_or_equal_to: "%{attribute} greater than or equal to"
+      less_than_or_equal_to: "%{attribute} less than or equal to"
+      in: "%{attribute} is one of"
+      not_in: "%{attribute} isn't one of"
+      is_true: "%{attribute} is true"
+      is_false: "%{attribute} is false"
+      is_present: "%{attribute} is present"
+      is_blank: "%{attribute} is blank"
+      is_null: "%{attribute} is null"
+      is_not_null: "%{attribute} isn't null"

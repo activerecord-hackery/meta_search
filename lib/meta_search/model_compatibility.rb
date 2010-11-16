@@ -1,3 +1,5 @@
+require 'meta_search/utility'
+
 module MetaSearch
 
   module ModelCompatibility
@@ -24,7 +26,7 @@ module MetaSearch
   end
 
   class Name < String
-    attr_reader :singular, :plural, :element, :collection, :partial_path, :human, :param_key, :route_key
+    attr_reader :singular, :plural, :element, :collection, :partial_path, :human, :param_key, :route_key, :i18n_key
     alias_method :cache_key, :collection
 
     def initialize
@@ -37,12 +39,33 @@ module MetaSearch
       @partial_path = "#{@collection}/#{@element}".freeze
       @param_key = "search".freeze
       @route_key = "searches".freeze
+      @i18n_key = :meta_search
     end
   end
 
   module ClassMethods
+    include Utility
+
     def model_name
       @_model_name ||= Name.new
+    end
+
+    def human_attribute_name(attribute, options = {})
+      method_name = preferred_method_name(attribute)
+
+      defaults = [:"meta_search.attributes.#{base.model_name.i18n_key}.#{method_name || attribute}"]
+
+      if method_name
+        predicate = Where.get(method_name)[:name]
+        predicate_attribute = method_name.sub(/_#{predicate}=?$/, '')
+        defaults << :"meta_search.predicates.#{predicate}"
+      end
+
+      defaults << options.delete(:default) if options[:default]
+      defaults << attribute.to_s.humanize
+
+      options.reverse_merge! :count => 1, :default => defaults, :attribute => base.human_attribute_name(predicate_attribute)
+      I18n.translate(defaults.shift, options)
     end
   end
 

@@ -1,0 +1,11 @@
+flanders:
+  activerecord:
+    attributes:
+      company:
+        name: "Company name-diddly"
+  meta_search:
+    predicates:
+      contains: "%{attribute} contains-diddly"
+    attributes:
+      developer:
+        name_contains: "Developer name-diddly contains-aroonie"

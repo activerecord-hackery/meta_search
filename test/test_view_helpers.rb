@@ -32,6 +32,43 @@ class TestViewHelpers < ActionView::TestCase
     @controller = @controller.new
   end
 
+  context "A search against Company and a search against Developer" do
+    setup do
+      @s1 = Company.search
+      @s2 = Developer.search
+      form_for @s1 do |f|
+        @f1 = f
+      end
+
+      form_for @s2 do |f|
+        @f2 = f
+      end
+    end
+
+    should "not have the same base on their singleton class" do
+      assert @s1.class.base != @s2.class.base
+    end
+
+    should "use the default localization for predicates" do
+      assert_match /Name isn't null/, @f1.label(:name_is_not_null)
+    end
+
+    context "in the Flanders locale" do
+      setup do
+        I18n.locale = :flanders
+      end
+
+      teardown do
+        I18n.locale = nil
+      end
+
+      should "localize according to their bases" do
+        assert_match /Company name-diddly contains-diddly/, @f1.label(:name_contains)
+        assert_match /Developer name-diddly contains-aroonie/, @f2.label(:name_like)
+      end
+    end
+  end
+
   context "A previously-filled search form" do
     setup do
       @s = Company.search
