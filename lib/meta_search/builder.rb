@@ -22,7 +22,7 @@ module MetaSearch
     include ModelCompatibility
     include Utility
 
-    attr_reader :base, :search_key, :search_attributes, :join_dependency, :errors
+    attr_reader :base, :relation, :search_key, :search_attributes, :join_dependency, :errors
     delegate *RELATION_METHODS + [:to => :relation]
 
     # Initialize a new Builder. Requires a base model to wrap, and supports a couple of options
@@ -34,11 +34,6 @@ module MetaSearch
       @join_dependency = build_join_dependency
       @search_attributes = {}
       @errors = ActiveModel::Errors.new(self)
-    end
-
-    def relation
-      enforce_join_depth_limit!
-      @relation
     end
 
     def get_column(column, base = @base)
@@ -130,12 +125,6 @@ module MetaSearch
       opts.each_pair do |k, v|
         self.send("#{k}=", v)
       end
-    end
-
-    def enforce_join_depth_limit!
-      raise JoinDepthError, "Maximum join depth of #{MAX_JOIN_DEPTH} exceeded." if @join_dependency.join_associations.detect {|ja|
-        gauge_depth_of_join_association(ja) > MAX_JOIN_DEPTH
-      }
     end
 
     def gauge_depth_of_join_association(ja)
@@ -236,22 +225,24 @@ module MetaSearch
       end
     end
 
-    def column_type(name, base = @base)
+    def column_type(name, base = @base, depth = 1)
       type = nil
       if column = get_column(name, base)
         type = column.type
       elsif (segments = name.split(/_/)).size > 1
-        type = type_from_association_segments(segments, base)
+        type = type_from_association_segments(segments, base, depth)
       end
       type
     end
 
-    def type_from_association_segments(segments, base)
+    def type_from_association_segments(segments, base, depth)
       remainder = []
       found_assoc = nil
       type = nil
       while remainder.unshift(segments.pop) && segments.size > 0 && !found_assoc do
         if found_assoc = get_association(segments.join('_'), base)
+          depth += 1
+          raise JoinDepthError, "Maximum join depth of #{MAX_JOIN_DEPTH} exceeded." if depth > MAX_JOIN_DEPTH
           if found_assoc.options[:polymorphic]
             unless delimiter = remainder.index('type')
               raise PolymorphicAssociationMissingTypeError, "Polymorphic association specified without a type"
@@ -259,9 +250,9 @@ module MetaSearch
             polymorphic_class, attribute_name = remainder[0...delimiter].join('_'),
                                                 remainder[delimiter + 1...remainder.size].join('_')
             polymorphic_class = polymorphic_class.classify.constantize
-            type = column_type(attribute_name, polymorphic_class)
+            type = column_type(attribute_name, polymorphic_class, depth)
           else
-            type = column_type(remainder.join('_'), found_assoc.klass)
+            type = column_type(remainder.join('_'), found_assoc.klass, depth)
           end
         end
       end

@@ -80,6 +80,12 @@ class TestSearch < Test::Unit::TestCase
         end
       end
 
+      should "raise an error when MAX_JOIN_DEPTH is exceeded" do
+        assert_raise MetaSearch::JoinDepthError do
+          @s.developers_company_developers_company_developers_name_equals = "Ernie Miller"
+        end
+      end
+
       context "sorted by name in ascending order" do
         setup do
           @s.meta_sort = 'name.asc'
@@ -208,18 +214,6 @@ class TestSearch < Test::Unit::TestCase
 
         should "not return a company named Mission Data" do
           assert_does_not_contain @s.all, Company.where(:name => "Mission Data").first
-        end
-      end
-
-      context "with a join more than five tables deep (including source table)" do
-        setup do
-          @s.developers_company_developers_company_developers_name_equals = "Ernie Miller"
-        end
-
-        should "raise an error when the relation is accessed" do
-          assert_raise MetaSearch::JoinDepthError do
-            @s.all
-          end
         end
       end
 
