@@ -7,5 +7,7 @@ flanders:
     predicates:
       contains: "%{attribute} contains-diddly"
     attributes:
+      company:
+        reverse_name: "Company reverse name-diddly"
       developer:
         name_contains: "Developer name-diddly contains-aroonie"

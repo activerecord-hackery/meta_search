@@ -60,6 +60,7 @@ class TestViewHelpers < ActionView::TestCase
 
       should "localize according to their bases" do
         assert_match /Company name-diddly contains-diddly/, @f1.label(:name_contains)
+        assert_match /Company reverse name-diddly/, @f1.label(:reverse_name)
         assert_match /Developer name-diddly contains-aroonie/, @f2.label(:name_like)
       end
     end

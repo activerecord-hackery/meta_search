@@ -64,7 +64,7 @@ module MetaSearch
       defaults << options.delete(:default) if options[:default]
       defaults << attribute.to_s.humanize
 
-      options.reverse_merge! :count => 1, :default => defaults, :attribute => klass.human_attribute_name(predicate_attribute)
+      options.reverse_merge! :count => 1, :default => defaults, :attribute => klass.human_attribute_name(predicate_attribute || attribute)
       I18n.translate(defaults.shift, options)
     end
   end
