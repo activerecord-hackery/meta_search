@@ -34,7 +34,7 @@ module MetaSearch
 
   RELATION_METHODS = [:joins, :includes, :select, :order, :where, :having,
                       :to_a, :all, :count, :length, :size, :to_sql, :debug_sql, :paginate,
-                      :find_each, :first, :last, :each, :arel]
+                      :find_each, :first, :last, :each, :arel, :in_groups_of]
 end
 
 require 'active_record'
