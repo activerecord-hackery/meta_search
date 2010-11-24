@@ -1,3 +1,10 @@
+Changes since 0.9.10 (2010-11-18):
+  * Skip attempts to sort if someone passes an empty string to meta_sort
+  * Allow conditions on search_methods, (attr|assoc)_(un)?searchable using :if.
+    Option should be an object that responds to call and accepts the
+    MetaSearch::Builder instance as a parameter. Unused options passed to the
+    Model.search method will be available for your conditions to act on.
+
 Changes since 0.9.9 (2010-11-15):
   * Fix bug introduced by new polymorphic belongs_to association code in
     honoring :url param to form_for

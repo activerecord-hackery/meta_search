@@ -17,7 +17,7 @@ module MetaSearch
           self._metasearch_include_attributes =
             self._metasearch_exclude_attributes =
             self._metasearch_exclude_associations =
-            self._metasearch_include_associations = []
+            self._metasearch_include_associations = {}
           self._metasearch_methods = {}
         end
       end
@@ -34,6 +34,30 @@ module MetaSearch
 
         alias_method :search, :metasearch unless respond_to?(:search)
 
+        def _metasearch_method_authorized?(name, metasearch_object)
+          name = name.to_s
+          meth = self._metasearch_methods[name]
+          meth && (meth[:if] ? meth[:if].call(metasearch_object) : true)
+        end
+
+        def _metasearch_attribute_authorized?(name, metasearch_object)
+          name = name.to_s
+          if self._metasearch_include_attributes.empty?
+            !_metasearch_excludes_attribute?(name, metasearch_object)
+          else
+            _metasearch_includes_attribute?(name, metasearch_object)
+          end
+        end
+
+        def _metasearch_association_authorized?(name, metasearch_object)
+          name = name.to_s
+          if self._metasearch_include_associations.empty?
+            !_metasearch_excludes_association?(name, metasearch_object)
+          else
+            _metasearch_includes_association?(name, metasearch_object)
+          end
+        end
+
         private
 
         # Excludes model attributes from searchability. This means that searches can't be created against
@@ -43,10 +67,15 @@ module MetaSearch
         # like <tt>:user_id_equals</tt>, nor will an Article.search accept the parameter
         # <tt>:comments_user_id_equals</tt>.
         def attr_unsearchable(*args)
+          opts = args.extract_options!
           args.flatten.each do |attr|
             attr = attr.to_s
             raise(ArgumentError, "No persisted attribute (column) named #{attr} in #{self}") unless self.columns_hash.has_key?(attr)
-            self._metasearch_exclude_attributes = (self._metasearch_exclude_attributes + [attr]).uniq
+            self._metasearch_exclude_attributes = self._metasearch_exclude_attributes.merge(
+              attr => {
+                :if => opts[:if]
+              }
+            )
           end
         end
 
@@ -54,10 +83,15 @@ module MetaSearch
         # <tt>attr_searchable</tt> and <tt>attr_unsearchable</tt> are present, the latter
         # is ignored.
         def attr_searchable(*args)
+          opts = args.extract_options!
           args.flatten.each do |attr|
             attr = attr.to_s
             raise(ArgumentError, "No persisted attribute (column) named #{attr} in #{self}") unless self.columns_hash.has_key?(attr)
-            self._metasearch_include_attributes = (self._metasearch_include_attributes + [attr]).uniq
+            self._metasearch_include_attributes = self._metasearch_include_attributes.merge(
+              attr => {
+                :if => opts[:if]
+              }
+            )
           end
         end
 
@@ -66,31 +100,68 @@ module MetaSearch
         # searching by declaring <tt>assoc_unsearchable :comments</tt> won't make any of the
         # <tt>comments_*</tt> methods available.
         def assoc_unsearchable(*args)
+          opts = args.extract_options!
           args.flatten.each do |assoc|
             assoc = assoc.to_s
             raise(ArgumentError, "No such association #{assoc} in #{self}") unless self.reflect_on_all_associations.map {|a| a.name.to_s}.include?(assoc)
-            self._metasearch_exclude_associations = (self._metasearch_exclude_associations + [assoc]).uniq
+            self._metasearch_exclude_associations = self._metasearch_exclude_associations.merge(
+              assoc => {
+                :if => opts[:if]
+              }
+            )
           end
         end
 
         # As with <tt>attr_searchable</tt> this is the whitelist version of
         # <tt>assoc_unsearchable</tt>
         def assoc_searchable(*args)
+          opts = args.extract_options!
           args.flatten.each do |assoc|
             assoc = assoc.to_s
             raise(ArgumentError, "No such association #{assoc} in #{self}") unless self.reflect_on_all_associations.map {|a| a.name.to_s}.include?(assoc)
-            self._metasearch_include_associations = (self._metasearch_include_associations + [assoc]).uniq
+            self._metasearch_include_associations = self._metasearch_include_associations.merge(
+              assoc => {
+                :if => opts[:if]
+              }
+            )
           end
         end
 
         def search_methods(*args)
-          opts = args.last.is_a?(Hash) ? args.pop : {}
+          opts = args.extract_options!
+          authorizer = opts.delete(:if)
           args.flatten.map(&:to_s).each do |arg|
-            self._metasearch_methods[arg] = MetaSearch::Method.new(arg, opts)
+            self._metasearch_methods = self._metasearch_methods.merge(
+              arg => {
+                :method => MetaSearch::Method.new(arg, opts),
+                :if => authorizer
+              }
+            )
           end
         end
 
         alias_method :search_method, :search_methods
+
+        def _metasearch_includes_attribute?(name, metasearch_object)
+          attr = self._metasearch_include_attributes[name]
+          attr && (attr[:if] ? attr[:if].call(metasearch_object) : true)
+        end
+
+        def _metasearch_excludes_attribute?(name, metasearch_object)
+          attr = self._metasearch_exclude_attributes[name]
+          attr && (attr[:if] ? attr[:if].call(metasearch_object) : true)
+        end
+
+        def _metasearch_includes_association?(name, metasearch_object)
+          assoc = self._metasearch_include_associations[name]
+          assoc && (assoc[:if] ? assoc[:if].call(metasearch_object) : true)
+        end
+
+        def _metasearch_excludes_association?(name, metasearch_object)
+          assoc = self._metasearch_exclude_associations[name]
+          assoc && (assoc[:if] ? assoc[:if].call(metasearch_object) : true)
+        end
+
       end
     end
 

@@ -2,6 +2,78 @@ require 'helper'
 
 class TestSearch < Test::Unit::TestCase
 
+  context "A Company search where options[:user] = 'blocked'" do
+    setup do
+      @s = Company.search({}, :user => 'blocked')
+    end
+
+    should "not respond_to? a search against backwards_name" do
+      assert !@s.respond_to?(:backwards_name), "The search responded to :backwards_name"
+    end
+
+    should "raise an error if we try to search on backwards_name" do
+      assert_raise NoMethodError do
+        @s.backwards_name = 'blah'
+      end
+    end
+
+    should "not respond_to? a search against updated_at_eq" do
+      assert !@s.respond_to?(:updated_at_eq), "The search responded to :updated_at_eq"
+    end
+
+    should "raise an error if we try to search on updated_at" do
+      assert_raise NoMethodError do
+        @s.updated_at_eq = 'blah'
+      end
+    end
+
+    should "not respond_to? a search against notes_note_matches" do
+      assert !@s.respond_to?(:notes_note_matches), "The search responded to :notes_note_matches"
+    end
+
+    should "raise an error if we try to search on notes_note_matches" do
+      assert_raise NoMethodError do
+        @s.notes_note_matches = '%blah%'
+      end
+    end
+  end
+
+  context "A Developer search where options[:user] = 'privileged'" do
+    setup do
+      @s = Developer.search({}, :user => 'privileged')
+    end
+
+    should "respond_to? a search against name_eq" do
+      assert_respond_to @s, :name_eq
+    end
+
+    should "not raise an error on a search against name_eq" do
+      assert_nothing_raised do
+        @s.name_eq = 'blah'
+      end
+    end
+
+    should "respond_to? a search against company_name_eq" do
+      assert_respond_to @s, :company_name_eq
+    end
+
+    should "not raise an error on a search against name_eq" do
+      assert_nothing_raised do
+        @s.company_name_eq = 'blah'
+      end
+    end
+
+    should "respond_to? a search against company_updated_at_eq" do
+      assert_respond_to @s, :company_updated_at_eq
+    end
+
+    should "not raise an error on a search against company_updated_at_eq" do
+      assert_nothing_raised do
+        @s.company_updated_at_eq = Time.now
+      end
+    end
+  end
+
   [{:name => 'Company', :object => Company},
    {:name => 'Company as a Relation', :object => Company.scoped}].each do |object|
     context_a_search_against object[:name], object[:object] do
