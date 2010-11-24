@@ -174,7 +174,7 @@ module MetaSearch
     def set_sort(val)
       column, direction = val.split('.')
       direction ||= 'asc'
-      if ['asc','desc'].include?(direction)
+      if not column.nil? and ['asc','desc'].include?(direction)
         if @base.respond_to?("sort_by_#{column}_#{direction}")
           search_attributes['meta_sort'] = val
           @relation = @relation.send("sort_by_#{column}_#{direction}")

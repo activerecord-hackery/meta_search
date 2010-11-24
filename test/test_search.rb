@@ -86,6 +86,18 @@ class TestSearch < Test::Unit::TestCase
         end
       end
 
+      context "when meta_sort value is empty string" do
+        setup do
+          @s.meta_sort = ''
+        end
+
+        should "not raise an error, just ignore sorting" do
+          assert_nothing_raised do
+            assert_equal Company.all, @s.all
+          end
+        end
+      end
+
       context "sorted by name in ascending order" do
         setup do
           @s.meta_sort = 'name.asc'
