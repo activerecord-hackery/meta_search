@@ -63,6 +63,10 @@ class TestViewHelpers < ActionView::TestCase
         assert_match /Company reverse name-diddly/, @f1.label(:reverse_name)
         assert_match /Developer name-diddly contains-aroonie/, @f2.label(:name_like)
       end
+
+      should "localize more than one attribute when joined with or" do
+        assert_match /Developer name-diddly or-diddly Developer salary-doodly equals-diddly/, @f2.label(:name_or_salary_eq)
+      end
     end
   end
 

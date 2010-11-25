@@ -58,13 +58,16 @@ module MetaSearch
       if method_name
         predicate = Where.get(method_name)[:name]
         predicate_attribute = method_name.sub(/_#{predicate}=?$/, '')
+        predicate_attributes = predicate_attribute.split(/_or_/).map { |att|
+          klass.human_attribute_name(att)
+        }.join(" #{I18n.translate(:"meta_search.or", :default => 'or')} ")
         defaults << :"meta_search.predicates.#{predicate}"
       end
 
       defaults << options.delete(:default) if options[:default]
       defaults << attribute.to_s.humanize
 
-      options.reverse_merge! :count => 1, :default => defaults, :attribute => klass.human_attribute_name(predicate_attribute || attribute)
+      options.reverse_merge! :count => 1, :default => defaults, :attribute => predicate_attributes || klass.human_attribute_name(attribute)
       I18n.translate(defaults.shift, options)
     end
   end

@@ -1,5 +1,6 @@
 en:
   meta_search:
+    or: 'or'
     predicates:
       equals: "%{attribute} equals"
       does_not_equal: "%{attribute} doesn't equal"

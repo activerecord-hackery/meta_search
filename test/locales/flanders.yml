@@ -3,9 +3,14 @@ flanders:
     attributes:
       company:
         name: "Company name-diddly"
+      developer:
+        name: "Developer name-diddly"
+        salary: "Developer salary-doodly"
   meta_search:
+    or: 'or-diddly'
     predicates:
       contains: "%{attribute} contains-diddly"
+      equals: "%{attribute} equals-diddly"
     attributes:
       company:
         reverse_name: "Company reverse name-diddly"
