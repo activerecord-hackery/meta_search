@@ -22,25 +22,27 @@ module MetaSearch
 
     protected
 
-      def build_with_metasearch(association, parent = nil, join_type = Arel::Nodes::InnerJoin, polymorphic_class = nil)
+      def build_with_metasearch(associations, parent = nil, join_type = Arel::Nodes::InnerJoin, polymorphic_class = nil)
         parent ||= @joins.last
-        case association
+
+        case associations
         when Symbol, String
-          reflection = parent.reflections[association.to_s.intern] or
-          raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?"
-          if reflection.options[:polymorphic]
+          reflection = parent.reflections[associations.to_s.intern] or
+            raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?"
+          unless (association = find_join_association(reflection, parent)) && (!polymorphic_class || association.active_record == polymorphic_class)
             @reflections << reflection
-            association = build_polymorphic_join_association(reflection, parent, polymorphic_class)
-            association.join_type = join_type
-            @joins << association
-          else
-            @reflections << reflection
-            association = build_join_association(reflection, parent)
+            if reflection.options[:polymorphic]
+              raise ArgumentError, "You can't create a polymorphic belongs_to join without specifying the polymorphic class!" unless polymorphic_class
+              association = build_polymorphic_join_association(reflection, parent, polymorphic_class)
+            else
+              association = build_join_association(reflection, parent)
+            end
             association.join_type = join_type
             @joins << association
           end
+          association
         else
-          build(association, parent, join_type) # Shouldn't get here.
+          build(associations, parent, join_type)
         end
       end
 
@@ -58,12 +60,12 @@ module MetaSearch
       @join_dependency    = join_dependency
       @parent             = parent || join_dependency.join_base
       @reflection         = reflection.clone
-      @reflection.instance_eval "def klass; #{polymorphic_class} end"
+      @reflection.instance_eval "def klass; #{polymorphic_class} end;"
       @aliased_prefix     = "t#{ join_dependency.joins.size }"
       @parent_table_name  = @parent.active_record.table_name
       @aliased_table_name = aliased_table_name_for(table_name)
       @join               = nil
-      @join_type        = Arel::Nodes::InnerJoin
+      @join_type          = Arel::Nodes::InnerJoin
     end
 
     def ==(other)
@@ -81,15 +83,11 @@ module MetaSearch
 
       @join = [
         aliased_table[options[:primary_key] || reflection.klass.primary_key].eq(parent_table[options[:foreign_key] || reflection.primary_key_name]),
-        parent_table[options[:foreign_type]].eq(active_record.base_class.name)
+        parent_table[options[:foreign_type]].eq(active_record.name)
       ]
 
-      unless klass.descends_from_active_record?
-        sti_column = aliased_table[klass.inheritance_column]
-        sti_condition = sti_column.eq(klass.sti_name)
-        klass.descendants.each {|subclass| sti_condition = sti_condition.or(sti_column.eq(subclass.sti_name)) }
-
-        @join << sti_condition
+      if options[:conditions]
+        @join << interpolate_sql(sanitize_sql(options[:conditions], aliased_table_name))
       end
 
       @join
