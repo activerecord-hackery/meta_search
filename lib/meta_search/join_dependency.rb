@@ -60,7 +60,7 @@ module MetaSearch
       @join_dependency    = join_dependency
       @parent             = parent || join_dependency.join_base
       @reflection         = reflection.clone
-      @reflection.instance_eval "def klass; #{polymorphic_class} end;"
+      @reflection.instance_variable_set(:"@klass", polymorphic_class)
       @aliased_prefix     = "t#{ join_dependency.joins.size }"
       @parent_table_name  = @parent.active_record.table_name
       @aliased_table_name = aliased_table_name_for(table_name)
