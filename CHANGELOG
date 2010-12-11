@@ -4,6 +4,8 @@ Changes since 0.9.10 (2010-11-18):
     Option should be an object that responds to call and accepts the
     MetaSearch::Builder instance as a parameter. Unused options passed to the
     Model.search method will be available for your conditions to act on.
+  * Access attribute setters if a param is supplied - @search.attr_name(val)
+    behaves like @search.attr_name = val
 
 Changes since 0.9.9 (2010-11-15):
   * Fix bug introduced by new polymorphic belongs_to association code in

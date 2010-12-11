@@ -170,31 +170,45 @@ class TestSearch < Test::Unit::TestCase
         end
       end
 
-      context "sorted by name in ascending order" do
-        setup do
-          @s.meta_sort = 'name.asc'
-        end
-
-        should "sort by name in ascending order" do
-          assert_equal Company.order('name asc').all,
-                       @s.all
-        end
+      should "sort by name in ascending order" do
+        @s.meta_sort = 'name.asc'
+        assert_equal Company.order('name asc').all,
+                     @s.all
       end
 
-      context "sorted by name in descending order" do
-        setup do
-          @s.meta_sort = 'name.desc'
-        end
+      should "sort by name in ascending order as a method call" do
+        @s.meta_sort 'name.asc'
+        assert_equal Company.order('name asc').all,
+                     @s.all
+      end
 
-        should "sort by name in descending order" do
-          assert_equal Company.order('name desc').all,
-                       @s.all
-        end
+      should "sort by name in descending order" do
+        @s.meta_sort = 'name.desc'
+        assert_equal Company.order('name desc').all,
+                     @s.all
       end
 
       context "where name contains optical" do
         setup do
           @s.name_contains = 'optical'
+        end
+
+        should "return one result" do
+          assert_equal 1, @s.all.size
+        end
+
+        should "return a company named Advanced Optical Solutions" do
+          assert_contains @s.all, Company.where(:name => 'Advanced Optical Solutions').first
+        end
+
+        should "not return a company named Initech" do
+          assert_does_not_contain @s.all, Company.where(:name => "Initech").first
+        end
+      end
+
+      context "where name contains optical as a method call" do
+        setup do
+          @s.name_contains 'optical'
         end
 
         should "return one result" do
@@ -298,6 +312,20 @@ class TestSearch < Test::Unit::TestCase
 
         should "not return a company named Mission Data" do
           assert_does_not_contain @s.all, Company.where(:name => "Mission Data").first
+        end
+      end
+
+      context "where backwards name is hcetinI as a method call" do
+        setup do
+          @s.backwards_name 'hcetinI'
+        end
+
+        should "return 1 result" do
+          assert_equal 1, @s.all.size
+        end
+
+        should "return a company named Initech" do
+          assert_contains @s.all, Company.where(:name => 'Initech').first
         end
       end
 

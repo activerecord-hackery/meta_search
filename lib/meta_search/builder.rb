@@ -124,16 +124,16 @@ module MetaSearch
     def method_missing(method_id, *args, &block)
       method_name = method_id.to_s
       if method_name =~ /^meta_sort=?$/
-        method_name =~ /=$/ ? set_sort(args.first) : get_sort
+        (args.any? || method_name =~ /=$/) ? set_sort(args.first) : get_sort
       elsif match = method_name.match(/^(.*)\(([0-9]+).*\)$/) # Multiparameter reader
         method_name, index = match.captures
         vals = self.send(method_name)
         vals.is_a?(Array) ? vals[index.to_i - 1] : nil
       elsif match = matches_named_method(method_name)
-        method_name =~ /=$/ ? set_named_method_value(match, args.first) : get_named_method_value(match)
+        (args.any? || method_name =~ /=$/) ? set_named_method_value(match, args.first) : get_named_method_value(match)
       elsif match = matches_attribute_method(method_id)
         attribute, predicate = match.captures
-        method_name =~ /=$/ ? set_attribute_method_value(attribute, predicate, args.first) : get_attribute_method_value(attribute, predicate)
+         (args.any? || method_name =~ /=$/) ? set_attribute_method_value(attribute, predicate, args.first) : get_attribute_method_value(attribute, predicate)
       else
         super
       end
