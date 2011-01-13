@@ -273,12 +273,12 @@ MetaSearch adds a helper for this:
 lets you sandwich a list of fields, each in hash format, between the attribute and the usual
 options hash. See MetaSearch::Helpers::FormBuilder for more info.
 
-=== check_boxes and collection_check_boxes
+=== checks and collection_checks
 
 If you need to get an array into your where, and you don't care about parameter order,
 you might choose to use a select or collection_select with multiple selection enabled,
 but everyone hates multiple selection boxes. MetaSearch adds a couple of additional
-helpers, +check_boxes+ and +collection_check_boxes+ to handle multiple selections in a
+helpers, +checks+ and +collection_checks+ to handle multiple selections in a
 more visually appealing manner. They can be called with or without a block. Without a
 block, you get an array of MetaSearch::Check objects to do with as you please.
 
@@ -286,7 +286,7 @@ With a block, each check is yielded to your template, like so:
 
   <h4>How many heads?</h4>
   <ul>
-    <% f.check_boxes :number_of_heads_in,
+    <% f.checks :number_of_heads_in,
       [['One', 1], ['Two', 2], ['Three', 3]], :class => 'checkboxy' do |check| %>
       <li>
         <%= check.box %>
@@ -362,6 +362,50 @@ Excluded attributes on a model will be honored across associations, so if an Art
 
 Then your call to <tt>Article.search</tt> will allow <tt>:comments_body_contains</tt>
 but not <tt>:comments_user_id_equals</tt> to be passed.
+
+=== Conditional access to searches
+
+<tt>search_methods</tt>, <tt>attr_searchable</tt>, <tt>attr_unsearchable</tt>,
+<tt>assoc_searchable</tt>, and <tt>assoc_unsearchable</tt> all accept an <tt>:if</tt>
+option. If present, it should specify a Proc (or other object responding to <tt>call</tt>)
+that accepts a single parameter. This parameter will be the instance of the MetaSearch::Builder
+that gets created by a call to Model.search. Any unused search options (the second hash param)
+that get passed to Model.search will be available via the Builder object's <tt>options</tt>
+reader, and can be used for access control via this proc/object.
+
+Example:
+
+  assoc_unsearchable :notes,
+                     :if => proc {|s| s.options[:access] == 'blocked' || !s.options[:access]}
+
+=== Localization
+
+MetaSearch supports i18n localization in a few different ways. Consider this abbreviated
+example "flanders" locale:
+
+  flanders:
+    activerecord:
+      attributes:
+        company:
+          name: "Company name-diddly"
+        developer:
+          name: "Developer name-diddly"
+          salary: "Developer salary-doodly"
+    meta_search:
+      or: 'or-diddly'
+      predicates:
+        contains: "%{attribute} contains-diddly"
+        equals: "%{attribute} equals-diddly"
+      attributes:
+        company:
+          reverse_name: "Company reverse name-diddly"
+        developer:
+          name_contains: "Developer name-diddly contains-aroonie"
+
+First, MetaSearch will use a key found under meta_search.attributes.model_name.attribute_name,
+if it exists. As a fallback, it will use a localization based on the predicate type, along with
+the usual ActiveRecord attribute localization (the activerecord.attributes.model_name keys above).
+Additionally, a localized "or" can be specified for multi-column searches.
 
 == Contributions
 
