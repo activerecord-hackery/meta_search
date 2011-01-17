@@ -17,19 +17,7 @@ class TestViewHelpers < ActionView::TestCase
   include router.url_helpers
 
   def setup
-    @controller = Class.new do
-
-      attr_reader :url_for_options
-      def url_for(options)
-        @url_for_options = options
-        "http://www.example.com"
-      end
-
-      def _routes
-        @routes ||= ActionDispatch::Routing::RouteSet.new
-      end
-    end
-    @controller = @controller.new
+    @controller = ActionView::TestCase::TestController.new
   end
 
   context "A search against Company and a search against Developer" do
