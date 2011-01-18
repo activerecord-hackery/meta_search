@@ -24,7 +24,6 @@ module MetaSearch
 
       def build_with_metasearch(associations, parent = nil, join_type = Arel::Nodes::InnerJoin, polymorphic_class = nil)
         parent ||= @joins.last
-
         case associations
         when Symbol, String
           reflection = parent.reflections[associations.to_s.intern] or
@@ -33,7 +32,7 @@ module MetaSearch
             @reflections << reflection
             if reflection.options[:polymorphic]
               raise ArgumentError, "You can't create a polymorphic belongs_to join without specifying the polymorphic class!" unless polymorphic_class
-              association = build_polymorphic_join_association(reflection, parent, polymorphic_class)
+              association = PolymorphicJoinAssociation.new(reflection, self, polymorphic_class, parent)
             else
               association = build_join_association(reflection, parent)
             end
@@ -44,10 +43,6 @@ module MetaSearch
         else
           build(associations, parent, join_type)
         end
-      end
-
-      def build_polymorphic_join_association(reflection, parent, klass)
-        PolymorphicJoinAssociation.new(reflection, self, klass, parent)
       end
   end
 
