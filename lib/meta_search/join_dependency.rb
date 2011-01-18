@@ -27,7 +27,7 @@ module MetaSearch
         case associations
         when Symbol, String
           reflection = parent.reflections[associations.to_s.intern] or
-            raise ConfigurationError, "Association named '#{ association }' was not found; perhaps you misspelled it?"
+            raise ConfigurationError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
           unless (association = find_join_association(reflection, parent)) && (!polymorphic_class || association.active_record == polymorphic_class)
             @reflections << reflection
             if reflection.options[:polymorphic]
