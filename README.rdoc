@@ -33,7 +33,7 @@ In your view:
     <%= f.submit %>
   <% end %>
 
-Options for the search method are documented at MetaSearch::Searches::Base.
+Options for the search method are documented at MetaSearch::Searches::ActiveRecord.
 
 == "Wheres", and what they're good for
 
