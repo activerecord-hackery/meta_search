@@ -1,3 +1,7 @@
+Changes since 1.0.1 (2011-01-18):
+  * Include all non-boolean types in is_present and is_blank, to match
+    documentation
+
 Changes since 1.0.0 (2011-01-17):
   * Update polymorphic join support to play nicely with MetaWhere
 
