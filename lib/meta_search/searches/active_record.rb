@@ -78,15 +78,17 @@ module MetaSearch
         # like <tt>:user_id_equals</tt>, nor will an Article.search accept the parameter
         # <tt>:comments_user_id_equals</tt>.
         def attr_unsearchable(*args)
-          opts = args.extract_options!
-          args.flatten.each do |attr|
-            attr = attr.to_s
-            raise(ArgumentError, "No persisted attribute (column) named #{attr} in #{self}") unless self.columns_hash.has_key?(attr)
-            self._metasearch_exclude_attributes = self._metasearch_exclude_attributes.merge(
-              attr => {
-                :if => opts[:if]
-              }
-            )
+          if table_exists?
+            opts = args.extract_options!
+            args.flatten.each do |attr|
+              attr = attr.to_s
+              raise(ArgumentError, "No persisted attribute (column) named #{attr} in #{self}") unless self.columns_hash.has_key?(attr)
+              self._metasearch_exclude_attributes = self._metasearch_exclude_attributes.merge(
+                attr => {
+                  :if => opts[:if]
+                }
+              )
+            end
           end
         end
 
@@ -94,15 +96,17 @@ module MetaSearch
         # <tt>attr_searchable</tt> and <tt>attr_unsearchable</tt> are present, the latter
         # is ignored.
         def attr_searchable(*args)
-          opts = args.extract_options!
-          args.flatten.each do |attr|
-            attr = attr.to_s
-            raise(ArgumentError, "No persisted attribute (column) named #{attr} in #{self}") unless self.columns_hash.has_key?(attr)
-            self._metasearch_include_attributes = self._metasearch_include_attributes.merge(
-              attr => {
-                :if => opts[:if]
-              }
-            )
+          if table_exists?
+            opts = args.extract_options!
+            args.flatten.each do |attr|
+              attr = attr.to_s
+              raise(ArgumentError, "No persisted attribute (column) named #{attr} in #{self}") unless self.columns_hash.has_key?(attr)
+              self._metasearch_include_attributes = self._metasearch_include_attributes.merge(
+                attr => {
+                  :if => opts[:if]
+                }
+              )
+            end
           end
         end
 
