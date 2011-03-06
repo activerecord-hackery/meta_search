@@ -36,7 +36,7 @@ module MetaSearch
     # Query construction
     :joins, :includes, :select, :order, :where, :having, :group,
     # Results, debug, array methods
-    :to_a, :all, :length, :size, :to_sql, :debug_sql, :paginate,
+    :to_a, :all, :length, :size, :to_sql, :debug_sql, :paginate, :page,
     :find_each, :first, :last, :each, :arel, :in_groups_of, :group_by,
     # Calculations
     :count, :average, :minimum, :maximum, :sum
