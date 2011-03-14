@@ -1,166 +1,172 @@
 require 'action_view'
-require 'action_view/template'
+
 module MetaSearch
-  Check = Struct.new(:box, :label)
-
   module Helpers
-    module FormBuilder
-
-      def self.included(base)
-        # Only take on the check_boxes method names if someone else (Hi, José!) hasn't grabbed them.
-        alias_method :check_boxes, :checks unless base.method_defined?(:check_boxes)
-        alias_method :collection_check_boxes, :collection_checks unless base.method_defined?(:collection_check_boxes)
+    class FormBuilder < ::ActionView::Helpers::FormBuilder
+      def label(method, *args, &block)
+        options = args.extract_options!
+        text = args.first
+        i18n = options[:i18n] || {}
+        text ||= object.translate(method, i18n.reverse_merge(:include_associations => true)) if object.respond_to? :translate
+        super(method, text, options, &block)
       end
 
-      # Like other form_for field methods (text_field, hidden_field, password_field) etc,
-      # but takes a list of hashes between the +method+ parameter and the trailing option hash,
-      # if any, to specify a number of fields to create in multiparameter fashion.
-      #
-      # Each hash *must* contain a :field_type option, which specifies a form_for method, and
-      # _may_ contain an optional :type_cast option, with one of the typical multiparameter
-      # type cast characters. Any remaining options will be merged with the defaults specified
-      # in the trailing option hash and passed along when creating that field.
-      #
-      # For example...
-      #
-      #   <%= f.multiparameter_field :moderations_value_between,
-      #       {:field_type => :text_field, :class => 'first'},
-      #       {:field_type => :text_field, :type_cast => 'i'},
-      #       :size => 5 %>
-      #
-      # ...will create the following HTML:
-      #
-      #   <input class="first" id="search_moderations_value_between(1)"
-      #    name="search[moderations_value_between(1)]" size="5" type="text" />
-      #
-      #   <input id="search_moderations_value_between(2i)"
-      #    name="search[moderations_value_between(2i)]" size="5" type="text" />
-      #
-      # As with any multiparameter input fields, these will be concatenated into an
-      # array and passed to the attribute named by the first parameter for assignment.
-      def multiparameter_field(method, *args)
-        defaults = has_multiparameter_defaults?(args) ? args.pop : {}
-        raise ArgumentError, "No multiparameter fields specified" if args.blank?
-        html = ''.html_safe
-        args.each_with_index do |field, index|
-          type = field.delete(:field_type) || raise(ArgumentError, "No :field_type specified.")
-          cast = field.delete(:type_cast) || ''
-          opts = defaults.merge(field)
-          html.safe_concat(
-            @template.send(
-              type.to_s,
-              @object_name,
-              (method.to_s + "(#{index + 1}#{cast})"),
-              objectify_options(opts))
-            )
-        end
-        html
-      end
-
-      # Behaves almost exactly like the select method, but instead of generating a select tag,
-      # generates <tt>MetaSearch::Check</tt>s. These consist of two attributes, +box+ and +label+,
-      # which are (unsurprisingly) the HTML for the check box and the label. Called without a block,
-      # this method will return an array of check boxes. Called with a block, it will yield each
-      # check box to your template.
-      #
-      # *Parameters:*
-      #
-      # * +method+ - The method name on the form_for object
-      # * +choices+ - An array of arrays, the first value in each element is the text for the
-      #   label, and the last is the value for the checkbox
-      # * +options+ - An options hash to be passed through to the checkboxes
-      #
-      # *Examples:*
-      #
-      # <b>Simple formatting:</b>
-      #
-      #   <h4>How many heads?</h4>
-      #   <ul>
-      #     <% f.checks :number_of_heads_in,
-      #        [['One', 1], ['Two', 2], ['Three', 3]], :class => 'checkboxy' do |check| %>
-      #        <li>
-      #          <%= check.box %>
-      #          <%= check.label %>
-      #        </li>
-      #     <% end %>
-      #   </ul>
-      #
-      # This example will output the checkboxes and labels in an unordered list format.
-      #
-      # <b>Grouping:</b>
-      #
-      # Chain <tt>in_groups_of(<num>, false)</tt> on checks like so:
-      #   <h4>How many heads?</h4>
-      #   <p>
-      #     <% f.checks(:number_of_heads_in,
-      #        [['One', 1], ['Two', 2], ['Three', 3]],
-      #        :class => 'checkboxy').in_groups_of(2, false) do |checks| %>
-      #       <% checks.each do |check| %>
-      #         <%= check.box %>
-      #         <%= check.label %>
-      #       <% end %>
-      #       <br />
-      #     <% end %>
-      #   </p>
-      def checks(method, choices = [], options = {}, &block)
-        unless choices.first.respond_to?(:first) && choices.first.respond_to?(:last)
-          raise ArgumentError, 'invalid choice array specified'
-        end
-        collection_checks(method, choices, :last, :first, options, &block)
-      end
-
-      # Just like +checks+, but this time you can pass in a collection, value, and text method,
-      # as with collection_select.
-      #
-      # Example:
-      #
-      #   <% f.collection_checks :head_sizes_in, HeadSize.all,
-      #       :id, :name, :class => 'headcheck' do |check| %>
-      #     <%= check.box %> <%= check.label %>
-      #   <% end %>
-      def collection_checks(method, collection, value_method, text_method, options = {}, &block)
-        check_boxes = []
-        collection.each do |choice|
-          text = choice.send(text_method)
-          value = choice.send(value_method)
-          check = MetaSearch::Check.new
-          check.box = @template.check_box_tag(
-            "#{@object_name}[#{method}][]",
-            value,
-            [@object.send(method)].flatten.include?(value),
-            options.merge(:id => [@object_name, method.to_s, value.to_s.underscore].join('_'))
-          )
-          check.label = @template.label_tag([@object_name, method.to_s, value.to_s.underscore].join('_'),
-                                        text)
-          if block_given?
-            yield check
-          else
-            check_boxes << check
+      def attribute_select(options = {}, html_options = {})
+        raise ArgumentError, "attribute_select must be called inside a search FormBuilder!" unless object.respond_to?(:context)
+        options[:include_blank] = true unless options.has_key?(:include_blank)
+        bases = [''] + association_array(options[:associations])
+        if bases.size > 1
+          collection = bases.map do |base|
+            [
+              Translate.association(base, :context => object.context),
+              object.context.searchable_columns(base).map do |c|
+                [
+                  attr_from_base_and_column(base, c),
+                  Translate.attribute(attr_from_base_and_column(base, c), :context => object.context)
+                ]
+              end
+            ]
           end
+          @template.grouped_collection_select(
+            @object_name, :name, collection, :last, :first, :first, :last,
+            objectify_options(options), @default_options.merge(html_options)
+          )
+        else
+          collection = object.context.searchable_columns(bases.first).map do |c|
+            [
+              attr_from_base_and_column(bases.first, c),
+              Translate.attribute(attr_from_base_and_column(bases.first, c), :context => object.context)
+            ]
+          end
+          @template.collection_select(
+            @object_name, :name, collection, :first, :last,
+            objectify_options(options), @default_options.merge(html_options)
+          )
         end
-        check_boxes unless block_given?
       end
 
-      # Creates a sort link for the MetaSearch::Builder the form is created against.
-      # Useful shorthand if your results happen to reside in the context of your
-      # form_for block.
-      # Sample usage:
-      #
-      #   <%= f.sort_link :name %>
-      #   <%= f.sort_link :name, 'Company Name' %>
-      #   <%= f.sort_link :name, :class => 'name_sort' %>
-      #   <%= f.sort_link :name, 'Company Name', :class => 'company_name_sort' %>
-      def sort_link(attribute, *args)
-        @template.sort_link @object, attribute, *args
+      def sort_select(options = {}, html_options = {})
+        raise ArgumentError, "sort_select must be called inside a search FormBuilder!" unless object.respond_to?(:context)
+        options[:include_blank] = true unless options.has_key?(:include_blank)
+        bases = [''] + association_array(options[:associations])
+        if bases.any?
+          collection = bases.map do |base|
+            [
+              Translate.association(base, :context => object.context),
+              object.context.searchable_columns(base).map do |c|
+                [
+                  attr_from_base_and_column(base, c),
+                  Translate.attribute(attr_from_base_and_column(base, c), :context => object.context)
+                ]
+              end
+            ]
+          end
+          @template.grouped_collection_select(
+            @object_name, :name, collection, :last, :first, :first, :last,
+            objectify_options(options), @default_options.merge(html_options)
+          ) + @template.collection_select(
+            @object_name, :dir, [['asc', object.translate('asc')], ['desc', object.translate('desc')]], :first, :last,
+            objectify_options(options), @default_options.merge(html_options)
+          )
+        else
+          collection = object.context.searchable_columns(bases.first).map do |c|
+            [
+              attr_from_base_and_column(bases.first, c),
+              Translate.attribute(attr_from_base_and_column(bases.first, c), :context => object.context)
+            ]
+          end
+          @template.collection_select(
+            @object_name, :name, collection, :first, :last,
+            objectify_options(options), @default_options.merge(html_options)
+          ) + @template.collection_select(
+            @object_name, :dir, [['asc', object.translate('asc')], ['desc', object.translate('desc')]], :first, :last,
+            objectify_options(options), @default_options.merge(html_options)
+          )
+        end
+      end
+
+      def sort_fields(*args, &block)
+        search_fields(:s, args, block)
+      end
+
+      def condition_fields(*args, &block)
+        search_fields(:c, args, block)
+      end
+
+      def and_fields(*args, &block)
+        search_fields(:n, args, block)
+      end
+
+      def or_fields(*args, &block)
+        search_fields(:o, args, block)
+      end
+
+      def attribute_fields(*args, &block)
+        search_fields(:a, args, block)
+      end
+
+      def predicate_fields(*args, &block)
+        search_fields(:p, args, block)
+      end
+
+      def value_fields(*args, &block)
+        search_fields(:v, args, block)
+      end
+
+      def search_fields(name, args, block)
+        args << {} unless args.last.is_a?(Hash)
+        args.last[:builder] ||= options[:builder]
+        args.last[:parent_builder] = self
+        options = args.extract_options!
+        objects = args.shift
+        objects ||= @object.send(name)
+        objects = [objects] unless Array === objects
+        name = "#{options[:object_name] || object_name}[#{name}]"
+        output = ActiveSupport::SafeBuffer.new
+        objects.each do |child|
+          output << @template.fields_for("#{name}[#{options[:child_index] || nested_child_index(name)}]", child, options, &block)
+        end
+        output
+      end
+
+      def predicate_select(options = {}, html_options = {})
+        @template.collection_select(
+          @object_name, :p, Predicate.collection, :first, :last,
+          objectify_options(options), @default_options.merge(html_options)
+        )
+      end
+
+      def combinator_select(options = {}, html_options = {})
+        @template.collection_select(
+          @object_name, :m, [['or', Translate.word(:or)], ['and', Translate.word(:and)]], :first, :last,
+          objectify_options(options), @default_options.merge(html_options)
+        )
       end
 
       private
 
-      # If the last element of the arguments to multiparameter_field has no :field_type
-      # key, we assume it's got some defaults to be used in the other hashes.
-      def has_multiparameter_defaults?(args)
-        args.size > 1 && args.last.is_a?(Hash) && !args.last.has_key?(:field_type)
+      def association_array(obj, prefix = nil)
+        ([prefix] + case obj
+        when Array
+          obj
+        when Hash
+          obj.map do |key, value|
+            case value
+            when Array, Hash
+              bases_array(value, key.to_s)
+            else
+              [key.to_s, [key, value].join('_')]
+            end
+          end
+        else
+          [obj]
+        end).compact.flatten.map {|v| [prefix, v].compact.join('_')}
       end
+
+      def attr_from_base_and_column(base, column)
+        [base, column].reject {|v| v.blank?}.join('_')
+      end
+
     end
   end
 end

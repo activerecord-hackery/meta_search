@@ -1,74 +1,19 @@
-require 'rubygems'
-require 'rake'
+require 'bundler'
+require 'rspec/core/rake_task'
 
-begin
-  require 'jeweler'
-  Jeweler::Tasks.new do |gem|
-    gem.name = "meta_search"
-    gem.summary = %Q{Object-based searching (and more) for simply creating search forms.}
-    gem.description = %Q{
-      Allows simple search forms to be created against an AR3 model
-      and its associations, has useful view helpers for sort links
-      and multiparameter fields as well.
-    }
-    gem.email = "ernie@metautonomo.us"
-    gem.homepage = "http://metautonomo.us/projects/metasearch/"
-    gem.authors = ["Ernie Miller"]
-    gem.add_development_dependency "shoulda"
-    gem.add_dependency "activerecord", "~> 3.0.2"
-    gem.add_dependency "activesupport", "~> 3.0.2"
-    gem.add_dependency "actionpack", "~> 3.0.2"
-    gem.add_dependency "arel", "~> 2.0.2"
-    gem.post_install_message = <<END
+Bundler::GemHelper.install_tasks
 
-*** Thanks for installing MetaSearch! ***
-Be sure to check out http://metautonomo.us/projects/metasearch/ for a
-walkthrough of MetaSearch's features, and click the donate button if
-you're feeling especially appreciative. It'd help me justify this
-"open source" stuff to my lovely wife. :)
-
-END
-  end
-  Jeweler::GemcutterTasks.new
-rescue LoadError
-  puts "Jeweler (or a dependency) not available. Install it with: gem install jeweler"
+RSpec::Core::RakeTask.new(:spec) do |rspec|
+  rspec.rspec_opts = ['--backtrace']
 end
 
-require 'rake/testtask'
-Rake::TestTask.new(:test) do |test|
-  test.libs << 'lib' << 'test'
-  test.libs << 'vendor/rails/activerecord/lib'
-  test.libs << 'vendor/rails/activesupport/lib'
-  test.libs << 'vendor/rails/actionpack/lib'
-  test.libs << 'vendor/arel/lib'
-  test.pattern = 'test/**/test_*.rb'
-  test.verbose = true
-end
+task :default => :spec
 
-begin
-  require 'rcov/rcovtask'
-  Rcov::RcovTask.new do |test|
-    test.libs << 'test'
-    test.pattern = 'test/**/test_*.rb'
-    test.verbose = true
-  end
-rescue LoadError
-  task :rcov do
-    abort "RCov is not available. In order to run rcov, you must: sudo gem install spicycode-rcov"
-  end
-end
-
-# Don't check dependencies on test, we're using vendored libraries
-# task :test => :check_dependencies
-
-task :default => :test
-
-require 'rake/rdoctask'
-Rake::RDocTask.new do |rdoc|
-  version = File.exist?('VERSION') ? File.read('VERSION') : ""
-
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "meta_search #{version}"
-  rdoc.rdoc_files.include('README*')
-  rdoc.rdoc_files.include('lib/**/*.rb')
+desc "Open an irb session with MetaSearch and the sample data used in specs"
+task :console do
+  require 'irb'
+  require 'irb/completion'
+  require 'console'
+  ARGV.clear
+  IRB.start
 end

@@ -1,0 +1,2 @@
+module MetaSearchHelper
+end

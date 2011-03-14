@@ -1,0 +1,7 @@
+require 'meta_search/nodes/node'
+require 'meta_search/nodes/attribute'
+require 'meta_search/nodes/value'
+require 'meta_search/nodes/condition'
+require 'meta_search/nodes/sort'
+require 'meta_search/nodes/and'
+require 'meta_search/nodes/or'

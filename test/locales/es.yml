@@ -1,5 +1,0 @@
-es:
-  activerecord:
-    attributes:
-      company:
-        name: Nombre
