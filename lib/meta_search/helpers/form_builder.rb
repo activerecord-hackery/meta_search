@@ -8,8 +8,8 @@ module MetaSearch
 
       def self.included(base)
         # Only take on the check_boxes method names if someone else (Hi, José!) hasn't grabbed them.
-        alias_method :check_boxes, :checks unless method_defined?(:check_boxes)
-        alias_method :collection_check_boxes, :collection_checks unless method_defined?(:collection_check_boxes)
+        alias_method :check_boxes, :checks unless base.method_defined?(:check_boxes)
+        alias_method :collection_check_boxes, :collection_checks unless base.method_defined?(:collection_check_boxes)
       end
 
       # Like other form_for field methods (text_field, hidden_field, password_field) etc,
