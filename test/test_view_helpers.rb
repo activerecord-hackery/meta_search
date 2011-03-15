@@ -81,7 +81,7 @@ class TestViewHelpers < ActionView::TestCase
     end
   end
 
-  context "A form using mutiparameter_field with default size option" do
+  context "A form using multiparameter_field with default size option" do
     setup do
       @s = Developer.search
       form_for @s do |f|
@@ -95,6 +95,18 @@ class TestViewHelpers < ActionView::TestCase
              {:field_type => :text_field, :type_cast => 'i'}, :size => 10
       assert_dom_equal '<input id="search_salary_in(1i)" name="search[salary_in(1i)]" ' +
                        'size="10" type="text" />' +
+                       '<input id="search_salary_in(2i)" name="search[salary_in(2i)]" ' +
+                       'size="10" type="text" />',
+                       html
+    end
+
+    should "join multiple fields together using a specified string" do
+      html = @f.multiparameter_field :salary_in,
+             {:field_type => :text_field, :type_cast => 'i'},
+             {:field_type => :text_field, :type_cast => 'i'}, :size => 10, :join => " and "
+      assert_dom_equal '<input id="search_salary_in(1i)" name="search[salary_in(1i)]" ' +
+                       'size="10" type="text" />' +
+                       ' and ' +
                        '<input id="search_salary_in(2i)" name="search[salary_in(2i)]" ' +
                        'size="10" type="text" />',
                        html

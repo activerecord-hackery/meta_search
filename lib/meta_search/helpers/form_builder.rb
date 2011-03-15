@@ -41,20 +41,20 @@ module MetaSearch
       def multiparameter_field(method, *args)
         defaults = has_multiparameter_defaults?(args) ? args.pop : {}
         raise ArgumentError, "No multiparameter fields specified" if args.blank?
-        html = ''.html_safe
+        join_str = defaults.delete(:join) || ''
+        html = []
         args.each_with_index do |field, index|
           type = field.delete(:field_type) || raise(ArgumentError, "No :field_type specified.")
           cast = field.delete(:type_cast) || ''
           opts = defaults.merge(field)
-          html.safe_concat(
+          html <<
             @template.send(
               type.to_s,
               @object_name,
               (method.to_s + "(#{index + 1}#{cast})"),
               objectify_options(opts))
-            )
         end
-        html
+        html.join(join_str).html_safe
       end
 
       # Behaves almost exactly like the select method, but instead of generating a select tag,
