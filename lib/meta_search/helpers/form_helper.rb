@@ -8,7 +8,8 @@ module MetaSearch
         elsif object_or_array.is_a?(Array) && (builder = object_or_array.detect {|o| o.is_a?(MetaSearch::Builder)})
           options[:url] ||= polymorphic_path(object_or_array.map {|o| o.is_a?(MetaSearch::Builder) ? o.base : o})
         else
-          super and return
+          super 
+          return
         end
 
         html_options = {
