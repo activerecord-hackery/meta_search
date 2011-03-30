@@ -35,7 +35,11 @@ module MetaSearch
       end
 
       def valid?
-        attributes.detect(&:valid?) && predicate && predicate.validate(values) && valid_combinator?
+        attributes.detect(&:valid?) && predicate && valid_arity? && predicate.validate(values) && valid_combinator?
+      end
+
+      def valid_arity?
+        values.size <= 1 || predicate.compound || %w(in not_in).include?(predicate.name)
       end
 
       def attributes
