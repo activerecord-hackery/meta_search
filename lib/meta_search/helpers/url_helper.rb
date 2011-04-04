@@ -21,9 +21,18 @@ module MetaSearch
         attr_name = attribute.to_s
         name = (args.size > 0 && !args.first.is_a?(Hash)) ? args.shift.to_s : builder.base.human_attribute_name(attr_name)
         prev_attr, prev_order = builder.search_attributes['meta_sort'].to_s.split('.')
-        current_order = prev_attr == attr_name ? prev_order : nil
-        new_order = current_order == 'asc' ? 'desc' : 'asc'
+        
         options = args.first.is_a?(Hash) ? args.shift : {}
+        current_order = prev_attr == attr_name ? prev_order : nil
+        
+        if defined?(options[:sort_preference]) && options[:sort_preference]==:desc
+          new_order = current_order == 'desc' ? 'asc' : 'desc'
+          options.delete(:sort_preference)
+        else
+          new_order = current_order == 'asc' ? 'desc' : 'asc'
+          options.delete(:sort_preference)
+        end        
+        
         html_options = args.first.is_a?(Hash) ? args.shift : {}
         css = ['sort_link', current_order].compact.join(' ')
         html_options[:class] = [css, html_options[:class]].compact.join(' ')
