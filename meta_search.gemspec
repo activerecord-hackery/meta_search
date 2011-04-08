@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{meta_search}
-  s.version = "1.0.3"
+  s.version = "1.0.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2011-03-14}
+  s.date = %q{2011-04-08}
   s.description = %q{
       Allows simple search forms to be created against an AR3 model
       and its associations, has useful view helpers for sort links
@@ -71,7 +71,7 @@ you're feeling especially appreciative. It'd help me justify this
 
 }
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.5.3}
+  s.rubygems_version = %q{1.7.2}
   s.summary = %q{Object-based searching (and more) for simply creating search forms.}
   s.test_files = [
     "test/fixtures/company.rb",
