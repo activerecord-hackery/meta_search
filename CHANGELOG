@@ -1,3 +1,7 @@
+Changes since 1.0.3 (2011-03-14):
+  * Be sure not to override form_for options if super returns a non-true value,
+    fixes a compatibility issue when using client_side_validation
+
 Changes since 1.0.1 (2011-01-18):
   * Include all non-boolean types in is_present and is_blank, to match
     documentation
