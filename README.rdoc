@@ -1,5 +1,8 @@
 = MetaSearch
 
+(If you're using edge Rails and you'd like to take an early peek at the successor to
+MetaSearch, please have a look at {Ransack}[http://github.com/ernie/ransack])
+
 MetaSearch is extensible searching for your form_for enjoyment. It “wraps” one of your ActiveRecord models, providing methods that allow you to build up search conditions against that model, and has a few extra form helpers to simplify sorting and supplying multiple parameters to your condition methods as well.
 
 == Getting Started
