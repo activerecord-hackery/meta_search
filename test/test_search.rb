@@ -74,6 +74,52 @@ class TestSearch < Test::Unit::TestCase
     end
   end
 
+  context "A Developer search" do
+    setup do
+      @s = Developer.search({:name_equals=>"Forgetful Notetaker"})
+    end
+
+    context "without any opts" do
+      should "find a null entry when searching notes" do
+        assert_equal 1, @s.notes_note_is_null(true).all.size
+      end
+
+      should "find no non-null entry when searching notes" do
+        assert_equal 0, @s.notes_note_is_not_null(true).all.size
+      end
+    end
+
+    context "with outer join specified" do
+      setup do
+        @s = Developer.search({:name_equals=>"Forgetful Notetaker"}, :join_type=>:outer)
+      end
+
+      should "find a null entry when searching notes" do
+        assert_equal 1, @s.notes_note_is_null(true).all.size
+      end
+
+      should "find no non-null entry when searching notes" do
+        assert_equal 0, @s.notes_note_is_not_null(true).all.size
+      end
+    end
+
+    context "with inner join specified" do
+      setup do
+        @s = Developer.search({:name_equals=>"Forgetful Notetaker"}, :join_type=>:inner)
+      end
+
+      should "find no null entry when searching notes" do
+        assert_equal 0, @s.notes_note_is_null(true).all.size
+      end
+
+      should "find no non-null entry when searching notes" do
+        assert_equal 0, @s.notes_note_is_not_null(true).all.size
+      end
+    end
+
+
+  end
+
   [{:name => 'Company', :object => Company},
    {:name => 'Company as a Relation', :object => Company.scoped}].each do |object|
     context_a_search_against object[:name], object[:object] do
@@ -477,8 +523,8 @@ class TestSearch < Test::Unit::TestCase
           @s.name_ne = 'Ernie Miller'
         end
 
-        should "return seven results" do
-          assert_equal 7, @s.all.size
+        should "return eight results" do
+          assert_equal 8, @s.all.size
         end
 
         should "not return a developer named Ernie Miller" do
