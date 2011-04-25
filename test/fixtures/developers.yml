@@ -53,3 +53,10 @@ another:
   name      : Another Guy
   salary    : 80000
   slacker   : false
+
+forgetful:
+  id        : 9
+  company_id: 3
+  name      : Forgetful Notetaker
+  salary    : 40000
+  slacker   : false
