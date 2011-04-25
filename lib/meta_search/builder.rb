@@ -33,6 +33,8 @@ module MetaSearch
       @base = @relation.klass
       @search_key = (opts.delete(:search_key) || 'search').to_s
       @options = opts  # Let's just hang on to other options for use in authorization blocks
+      @join_type = opts[:join_type] ||  Arel::Nodes::OuterJoin
+      @join_type = get_join_type(@join_type)
       @join_dependency = build_join_dependency
       @search_attributes = {}
       @errors = ActiveModel::Errors.new(self)
@@ -257,7 +259,7 @@ module MetaSearch
         assoc.parent == parent
       end
       unless found_association
-        @join_dependency.send(:build_with_metasearch, association, parent, Arel::Nodes::OuterJoin, klass)
+        @join_dependency.send(:build_with_metasearch, association, parent, @join_type, klass)
         found_association = @join_dependency.join_associations.last
         @relation = @relation.joins(found_association)
       end
@@ -299,5 +301,15 @@ module MetaSearch
       arel.joins(arel)
     end
 
+    def get_join_type(opt_join)
+      # Allow "inner"/:inner and "upper"/:upper
+      if opt_join.to_s.upcase == 'INNER'
+        opt_join = Arel::Nodes::InnerJoin
+      elsif opt_join.to_s.upcase == 'OUTER'
+        opt_join = Arel::Nodes::OuterJoin
+      end
+      # Default to trusting what the user gave us
+      opt_join
+    end
   end
 end
