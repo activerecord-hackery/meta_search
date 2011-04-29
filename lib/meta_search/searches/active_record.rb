@@ -181,22 +181,23 @@ module MetaSearch
     end
 
     def self.for(klass)
-      DISPATCH[klass]
+      DISPATCH[klass.name]
     end
 
     private
 
-    DISPATCH = Hash.new do |hash, klass|
-      class_name = klass.name.gsub('::', '_')
-      hash[klass] = module_eval <<-RUBY_EVAL
+    DISPATCH = Hash.new do |hash, klass_name|
+      class_name = klass_name.gsub('::', '_')
+      hash[klass_name] = module_eval <<-RUBY_EVAL
         class #{class_name} < MetaSearch::Builder
           def self.klass
-            ::#{klass}
+            ::#{klass_name}
           end
         end
 
         #{class_name}
       RUBY_EVAL
     end
+
   end
 end
