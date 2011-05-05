@@ -1,3 +1,8 @@
+Changes since 1.0.4 (2011-04-08):
+  * Add :join_type option to Builder to allow for using InnerJoin if desired
+    (Stephen Pike)
+  * Fix a memory leak in development mode (Bonias)
+
 Changes since 1.0.3 (2011-03-14):
   * Be sure not to override form_for options if super returns a non-true value,
     fixes a compatibility issue when using client_side_validation
