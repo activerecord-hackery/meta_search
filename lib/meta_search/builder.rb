@@ -35,7 +35,7 @@ module MetaSearch
       @options = opts  # Let's just hang on to other options for use in authorization blocks
       @join_type = opts[:join_type] ||  Arel::Nodes::OuterJoin
       @join_type = get_join_type(@join_type)
-      @join_dependency = build_join_dependency
+      @join_dependency = build_join_dependency(@relation)
       @search_attributes = {}
       @errors = ActiveModel::Errors.new(self)
     end
@@ -51,12 +51,7 @@ module MetaSearch
     def get_attribute(name, parent = @join_dependency.join_base)
       attribute = nil
       if get_column(name, parent.active_record)
-        if parent.is_a?(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
-          relation = parent.relation.is_a?(Array) ? parent.relation.last : parent.relation
-          attribute = relation[name]
-        else
-          attribute = @relation.arel_table[name]
-        end
+        attribute = parent.table[name]
       elsif (segments = name.to_s.split(/_/)).size > 1
         remainder = []
         found_assoc = nil
@@ -252,53 +247,58 @@ module MetaSearch
       type
     end
 
-    def build_or_find_association(association, parent = @join_dependency.join_base, klass = nil)
+    def build_or_find_association(name, parent = @join_dependency.join_base, klass = nil)
       found_association = @join_dependency.join_associations.detect do |assoc|
-        assoc.reflection.name == association.to_sym &&
-        assoc.reflection.klass == klass &&
-        assoc.parent == parent
+        assoc.reflection.name == name &&
+        assoc.parent == parent &&
+        (!klass || assoc.reflection.klass == klass)
       end
       unless found_association
-        @join_dependency.send(:build_with_metasearch, association, parent, @join_type, klass)
+        @join_dependency.send(:build_polymorphic, name.to_sym, parent, @join_type, klass)
         found_association = @join_dependency.join_associations.last
+        # Leverage the stashed association functionality in AR
         @relation = @relation.joins(found_association)
       end
+
       found_association
     end
 
-    def build_join_dependency
-      joins = @relation.joins_values.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
-
-      association_joins = joins.select do |j|
-        [Hash, Array, Symbol].include?(j.class) && !array_of_strings?(j)
-      end
-
-      stashed_association_joins = joins.select do |j|
-        j.is_a?(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
-      end
-
-      non_association_joins = (joins - association_joins - stashed_association_joins)
-      custom_joins = custom_join_sql(*non_association_joins)
-
-      ActiveRecord::Associations::ClassMethods::JoinDependency.new(@base, association_joins, custom_joins)
-    end
-
-    def custom_join_sql(*joins)
-      arel = @relation.table
-      joins.each do |join|
-        next if join.blank?
-
+    def build_join_dependency(relation)
+      buckets = relation.joins_values.group_by do |join|
         case join
-        when Hash, Array, Symbol
-          if array_of_strings?(join)
-            join_string = join.join(' ')
-            arel = arel.join(join_string)
-          end
+        when String
+          'string_join'
+        when Hash, Symbol, Array
+          'association_join'
+        when ::ActiveRecord::Associations::JoinDependency::JoinAssociation
+          'stashed_join'
+        when Arel::Nodes::Join
+          'join_node'
         else
-          arel = arel.join(join)
+          raise 'unknown class: %s' % join.class.name
         end
       end
-      arel.joins(arel)
+
+      association_joins         = buckets['association_join'] || []
+      stashed_association_joins = buckets['stashed_join'] || []
+      join_nodes                = buckets['join_node'] || []
+      string_joins              = (buckets['string_join'] || []).map { |x|
+        x.strip
+      }.uniq
+
+      join_list = relation.send :custom_join_ast, relation.table.from(relation.table), string_joins
+
+      join_dependency = ::ActiveRecord::Associations::JoinDependency.new(
+        relation.klass,
+        association_joins,
+        join_list
+      )
+
+      join_nodes.each do |join|
+        join_dependency.alias_tracker.aliased_name_for(join.left.name.downcase)
+      end
+
+      join_dependency.graft(*stashed_association_joins)
     end
 
     def get_join_type(opt_join)

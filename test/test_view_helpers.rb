@@ -6,18 +6,34 @@ class TestViewHelpers < ActionView::TestCase
   tests MetaSearch::Helpers::FormHelper
   include MetaSearch::Helpers::UrlHelper
 
-  router = ActionDispatch::Routing::RouteSet.new
-  router.draw do
-    resources :developers
-    resources :companies
-    resources :projects
-    resources :notes
-    match ':controller(/:action(/:id(.:format)))'
+  def self.router
+    @router ||= begin
+      router = ActionDispatch::Routing::RouteSet.new
+      router.draw do
+        resources :developers
+        resources :companies
+        resources :projects
+        resources :notes
+        match ':controller(/:action(/:id(.:format)))'
+      end
+      router
+    end
   end
+
   include router.url_helpers
 
+  # FIXME: figure out a cleaner way to get this behavior
   def setup
+    router = self.class.router
     @controller = ActionView::TestCase::TestController.new
+    @controller.instance_variable_set(:@_routes, router)
+    @controller.class_eval do
+      include router.url_helpers
+    end
+
+    @controller.view_context_class.class_eval do
+      include router.url_helpers
+    end
   end
 
   context "A search against Company and a search against Developer" do
@@ -326,7 +342,7 @@ class TestViewHelpers < ActionView::TestCase
         end
 
         should "maintain previous search options in its sort links" do
-          assert_match /search\[name_contains\]=a/,
+          assert_match /search%5Bname_contains%5D=a/,
                        sort_link(@s, :name, :controller => 'companies')
         end
       end
@@ -359,7 +375,7 @@ class TestViewHelpers < ActionView::TestCase
         end
 
         should "maintain previous search options in its sort links" do
-          assert_match /search\[name_contains\]=a/,
+          assert_match /search%5Bname_contains%5D=a/,
                        sort_link(@s, :company_name, :controller => 'companies')
         end
       end

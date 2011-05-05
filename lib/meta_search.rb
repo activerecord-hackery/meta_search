@@ -53,7 +53,7 @@ require 'meta_search/helpers'
 
 I18n.load_path += Dir[File.join(File.dirname(__FILE__), 'meta_search', 'locale', '*.yml')]
 
-ActiveRecord::Associations::ClassMethods::JoinDependency.send(:include, MetaSearch::JoinDependency)
+ActiveRecord::Associations::JoinDependency.send(:include, MetaSearch::JoinDependency)
 ActiveRecord::Base.send(:include, MetaSearch::Searches::ActiveRecord)
 ActionView::Helpers::FormBuilder.send(:include, MetaSearch::Helpers::FormBuilder)
 ActionController::Base.helper(MetaSearch::Helpers::UrlHelper)
