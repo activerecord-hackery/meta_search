@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.version = "1.1.0.pre"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [%q{Ernie Miller}]
-  s.date = %q{2011-05-06}
+  s.authors = ["Ernie Miller"]
+  s.date = %q{2011-05-26}
   s.description = %q{
       Allows simple search forms to be created against an AR3 model
       and its associations, has useful view helpers for sort links
@@ -70,8 +70,8 @@ you're feeling especially appreciative. It'd help me justify this
 "open source" stuff to my lovely wife. :)
 
 }
-  s.require_paths = [%q{lib}]
-  s.rubygems_version = %q{1.8.0}
+  s.require_paths = ["lib"]
+  s.rubygems_version = %q{1.7.2}
   s.summary = %q{Object-based searching (and more) for simply creating search forms.}
 
   if s.respond_to? :specification_version then
