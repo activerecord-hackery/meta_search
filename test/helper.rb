@@ -23,7 +23,7 @@ ActiveRecord::Base.silence do
   load File.join(FIXTURES_PATH, 'schema.rb')
 end
 
-Fixtures.create_fixtures(FIXTURES_PATH, ActiveRecord::Base.connection.tables)
+ActiveRecord::Fixtures.create_fixtures(FIXTURES_PATH, ActiveRecord::Base.connection.tables)
 
 I18n.load_path += Dir[File.join(File.dirname(__FILE__), 'locales', '*.yml')]
 
