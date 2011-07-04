@@ -317,6 +317,10 @@ Or, if in the context of a form_for against a MetaSearch::Builder:
 
   <%= f.sort_link :title %>
 
+By default, the link that is created will sort by the given column in ascending order when first clicked. If you'd like to reverse this (so the first click sorts the results in descending order), you can pass `:sort_preference=>:desc` in the options hash, like so:
+
+  <%= sort_link @search, :ratings, "Highest Rated", :sort_preference=>:desc %>
+
 The <tt>@search</tt> object is the instance of MetaSearch::Builder you got back earlier from
 your controller. The other required parameter is the attribute name itself. Optionally,
 you can provide a string as a 3rd parameter to override the default link name, and then
