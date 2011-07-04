@@ -322,6 +322,10 @@ your controller. The other required parameter is the attribute name itself. Opti
 you can provide a string as a 3rd parameter to override the default link name, and then
 additional hashed for the +options+ and +html_options+ hashes for link_to.
 
+By default, the link that is created will sort by the given column in ascending order when first clicked. If you'd like to reverse this (so the first click sorts the results in descending order), you can pass +:default_order => :desc+ in the options hash, like so:
+
+  <%= sort_link @search, :ratings, "Highest Rated", :default_order => :desc %>
+
 You can sort by more than one column as well, by creating a link like:
 
   <%= sort_link :name_and_salary %>

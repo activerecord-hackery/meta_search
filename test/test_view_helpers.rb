@@ -305,6 +305,21 @@ class TestViewHelpers < ActionView::TestCase
       @s = Company.search
     end
 
+    should "generate a sort link for descending order if set as the default order" do
+      assert_match /name.desc/,
+        sort_link(@s, :name, :controller => 'companies', :default_order => :desc)
+    end
+
+    should "generate a sort link for ascending order if set as the default order" do
+      assert_match /name.asc/,
+        sort_link(@s, :name, :controller => 'companies', :default_order => :asc)
+    end
+
+    should "generate a sort link for ascending order if default is specified incorectly" do
+      assert_match /name.asc/,
+        sort_link(@s, :name, :controller => 'companies', :default_order => :something_else)
+    end
+
     context "sorted by name ascending" do
       setup do
         @s.meta_sort = 'name.asc'
@@ -320,6 +335,21 @@ class TestViewHelpers < ActionView::TestCase
                         sort_link(@s, :created_at, :controller => 'companies')
       end
 
+      should "generate a sort link for descending order if ascending order is the default" do
+        assert_match /name.desc/,
+          sort_link(@s, :name, :controller => 'companies', :default_order => :asc)
+      end
+
+      should "generate a sort link for descending order if descending order is the default" do
+        assert_match /name.desc/,
+          sort_link(@s, :name, :controller => 'companies', :default_order => :desc)
+      end
+
+      should "generate a sort link for descending order if default is specified incorrectly" do
+        assert_match /name.desc/,
+          sort_link(@s, :name, :controller => 'companies', :default_order => :something_else)
+      end
+
       context "with existing search options" do
         setup do
           @s.name_contains = 'a'
@@ -329,6 +359,27 @@ class TestViewHelpers < ActionView::TestCase
           assert_match /search\[name_contains\]=a/,
                        sort_link(@s, :name, :controller => 'companies')
         end
+      end
+    end
+
+    context "sorted by name descending" do
+      setup do
+        @s.meta_sort = 'name.desc'
+      end
+
+      should "generate a sort link for ascending order if descending order is the default" do
+        assert_match /name.asc/,
+          sort_link(@s, :name, :controller => 'companies', :default_order => :desc)
+      end
+
+      should "generate a sort link for ascending order if ascending order is the default" do
+        assert_match /name.asc/,
+          sort_link(@s, :name, :controller => 'companies', :default_order => :asc)
+      end
+
+      should "generate a sort link for ascending order if default is specified incorrectly" do
+        assert_match /name.asc/,
+          sort_link(@s, :name, :controller => 'companies', :default_order => :desc)
       end
     end
   end

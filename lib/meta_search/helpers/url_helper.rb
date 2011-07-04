@@ -16,14 +16,27 @@ module MetaSearch
       #   <%= sort_link @search, :name, 'Company Name' %>
       #   <%= sort_link @search, :name, :class => 'name_sort' %>
       #   <%= sort_link @search, :name, 'Company Name', :class => 'company_name_sort' %>
+      #   <%= sort_link @search, :name, :default_order => :desc %>
+      #   <%= sort_link @search, :name, 'Company Name', :default_order => :desc %>
+      #   <%= sort_link @search, :name, :class => 'name_sort', :default_order => :desc %>
+      #   <%= sort_link @search, :name, 'Company Name', :class => 'company_name_sort', :default_order => :desc %>
+
       def sort_link(builder, attribute, *args)
         raise ArgumentError, "Need a MetaSearch::Builder search object as first param!" unless builder.is_a?(MetaSearch::Builder)
         attr_name = attribute.to_s
         name = (args.size > 0 && !args.first.is_a?(Hash)) ? args.shift.to_s : builder.base.human_attribute_name(attr_name)
         prev_attr, prev_order = builder.search_attributes['meta_sort'].to_s.split('.')
-        current_order = prev_attr == attr_name ? prev_order : nil
-        new_order = current_order == 'asc' ? 'desc' : 'asc'
+
         options = args.first.is_a?(Hash) ? args.shift : {}
+        current_order = prev_attr == attr_name ? prev_order : nil
+
+        if options[:default_order] == :desc
+          new_order = current_order == 'desc' ? 'asc' : 'desc'
+        else
+          new_order = current_order == 'asc' ? 'desc' : 'asc'
+        end
+        options.delete(:default_order)
+
         html_options = args.first.is_a?(Hash) ? args.shift : {}
         css = ['sort_link', current_order].compact.join(' ')
         html_options[:class] = [css, html_options[:class]].compact.join(' ')
