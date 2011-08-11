@@ -432,4 +432,16 @@ class TestViewHelpers < ActionView::TestCase
       end
     end
   end
+  
+  context "Any search" do
+    setup do
+      @s = Company.search(:name_contains => 'foo')
+    end
+    
+    should "not modify passed-in parameters" do
+      params = { :controller => 'companies' }
+      sort_link(@s, :name, params)
+      assert_equal ({ :controller => 'companies' }), params
+    end
+  end
 end
