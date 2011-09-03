@@ -91,7 +91,7 @@ class TestSearch < Test::Unit::TestCase
 
     context "with outer join specified" do
       setup do
-        @s = Developer.search({:name_equals=>"Forgetful Notetaker"}, :join_type=>:outer)
+        @s = Developer.search({:name_equals => "Forgetful Notetaker"}, :join_type => :outer)
       end
 
       should "find a null entry when searching notes" do
@@ -105,7 +105,7 @@ class TestSearch < Test::Unit::TestCase
 
     context "with inner join specified" do
       setup do
-        @s = Developer.search({:name_equals=>"Forgetful Notetaker"}, :join_type=>:inner)
+        @s = Developer.search({:name_equals=>"Forgetful Notetaker"}, :join_type => :inner)
       end
 
       should "find no null entry when searching notes" do

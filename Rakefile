@@ -17,6 +17,7 @@ begin
     gem.add_development_dependency "shoulda"
     gem.add_dependency "activerecord", "~> 3.1.0"
     gem.add_dependency "activesupport", "~> 3.1.0"
+    gem.add_dependency "polyamorous", "~> 0.5.0"
     gem.add_dependency "actionpack", "~> 3.1.0"
     gem.post_install_message = <<END
 

@@ -47,17 +47,11 @@ require 'active_record'
 require 'active_support'
 require 'action_view'
 require 'action_controller'
-require 'meta_search/join_dependency'
-require 'meta_search/join_association'
 require 'meta_search/searches/active_record'
 require 'meta_search/helpers'
 
 I18n.load_path += Dir[File.join(File.dirname(__FILE__), 'meta_search', 'locale', '*.yml')]
 
-ActiveRecord::Associations::JoinDependency.send(:include, MetaSearch::JoinDependency)
-unless ActiveRecord::Associations::JoinDependency::JoinAssociation.instance_methods.include? :initialize_with_polymorphism
-  ActiveRecord::Associations::JoinDependency::JoinAssociation.send(:include, MetaSearch::JoinAssociation)
-end
 ActiveRecord::Base.send(:include, MetaSearch::Searches::ActiveRecord)
 ActionView::Helpers::FormBuilder.send(:include, MetaSearch::Helpers::FormBuilder)
 ActionController::Base.helper(MetaSearch::Helpers::UrlHelper)

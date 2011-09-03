@@ -1,3 +1,4 @@
+require 'polyamorous'
 require 'meta_search/model_compatibility'
 require 'meta_search/exceptions'
 require 'meta_search/where'
@@ -254,7 +255,7 @@ module MetaSearch
         (!klass || assoc.reflection.klass == klass)
       end
       unless found_association
-        @join_dependency.send(:build_polymorphic, name.to_sym, parent, @join_type, klass)
+        @join_dependency.send(:build, Polyamorous::Join.new(name, @join_type, klass), parent)
         found_association = @join_dependency.join_associations.last
         # Leverage the stashed association functionality in AR
         @relation = @relation.joins(found_association)
