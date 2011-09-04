@@ -953,6 +953,12 @@ class TestSearch < Test::Unit::TestCase
                      @s.all
       end
 
+      should "allow traversal of polymorphic associations" do
+        @s.notable_developer_type_company_name_starts_with = 'M'
+        assert_equal Company.find_by_name('Mission Data').developers.map(&:notes).flatten.sort {|a, b| a.id <=>b.id},
+                     @s.all.sort {|a, b| a.id <=> b.id}
+      end
+
       should "raise an error when attempting to search against polymorphic belongs_to association without a type" do
         assert_raises ::MetaSearch::PolymorphicAssociationMissingTypeError do
           @s.notable_name_contains = 'MetaSearch'
