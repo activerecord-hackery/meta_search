@@ -120,6 +120,7 @@ module MetaSearch
       #   <% end %>
       def collection_checks(method, collection, value_method, text_method, options = {}, &block)
         check_boxes = []
+	current_searches = [@object.send(method)].flatten
         collection.each do |choice|
           text = choice.send(text_method)
           value = choice.send(value_method)
@@ -127,7 +128,7 @@ module MetaSearch
           check.box = @template.check_box_tag(
             "#{@object_name}[#{method}][]",
             value,
-            [@object.send(method)].flatten.include?(value),
+            current_searches.include?(value),
             options.merge(:id => [@object_name, method.to_s, value.to_s.underscore].join('_'))
           )
           check.label = @template.label_tag([@object_name, method.to_s, value.to_s.underscore].join('_'),
