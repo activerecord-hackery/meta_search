@@ -129,6 +129,12 @@ class TestViewHelpers < ActionView::TestCase
       assert @f.checks(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]).all?{|c| c.is_a?(MetaSearch::Check)}
     end
 
+    should "provide direct access to the check box text and value" do
+      check = @f.checks(:id_in, [['One', 1]]).first
+      assert_equal 'One', check.text
+      assert_equal 1, check.value
+    end
+
     should "generate the expected HTML with a block" do
       expected = <<-EXPECTED
 <p>

@@ -1,7 +1,7 @@
 require 'action_view'
 require 'action_view/template'
 module MetaSearch
-  Check = Struct.new(:box, :label)
+  Check = Struct.new(:text, :value, :box, :label)
 
   module Helpers
     module FormBuilder
@@ -124,6 +124,8 @@ module MetaSearch
           text = choice.send(text_method)
           value = choice.send(value_method)
           check = MetaSearch::Check.new
+          check.text = text
+          check.value = value
           id = [
             @object_name, method.to_s,
             # see FormTagHelper#sanitize_to_id
