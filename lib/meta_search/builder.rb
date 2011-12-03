@@ -298,7 +298,7 @@ module MetaSearch
       )
 
       join_nodes.each do |join|
-        join_dependency.alias_tracker.aliased_name_for(join.left.name.downcase)
+        join_dependency.alias_tracker.aliased_name_for(join.left.name.downcase.to_s)
       end
 
       join_dependency.graft(*stashed_association_joins)
