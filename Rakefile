@@ -15,10 +15,10 @@ begin
     gem.homepage = "http://metautonomo.us/projects/metasearch/"
     gem.authors = ["Ernie Miller"]
     gem.add_development_dependency "shoulda"
-    gem.add_dependency "activerecord", "~> 3.1.0"
-    gem.add_dependency "activesupport", "~> 3.1.0"
+    gem.add_dependency "activerecord", "~> 3.1"
+    gem.add_dependency "activesupport", "~> 3.1"
     gem.add_dependency "polyamorous", "~> 0.5.0"
-    gem.add_dependency "actionpack", "~> 3.1.0"
+    gem.add_dependency "actionpack", "~> 3.1"
     gem.post_install_message = <<END
 
 *** Thanks for installing MetaSearch! ***
