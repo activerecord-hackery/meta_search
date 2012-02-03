@@ -14,11 +14,6 @@ begin
     gem.email = "ernie@metautonomo.us"
     gem.homepage = "http://metautonomo.us/projects/metasearch/"
     gem.authors = ["Ernie Miller"]
-    gem.add_development_dependency "shoulda"
-    gem.add_dependency "activerecord", "~> 3.1.0"
-    gem.add_dependency "activesupport", "~> 3.1.0"
-    gem.add_dependency "polyamorous", "~> 0.5.0"
-    gem.add_dependency "actionpack", "~> 3.1.0"
     gem.post_install_message = <<END
 
 *** Thanks for installing MetaSearch! ***
@@ -29,7 +24,7 @@ you're feeling especially appreciative. It'd help me justify this
 
 END
   end
-  Jeweler::GemcutterTasks.new
+  Jeweler::RubygemsDotOrgTasks.new
 rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: gem install jeweler"
 end
