@@ -27,7 +27,7 @@ module MetaSearch
         name = (args.size > 0 && !args.first.is_a?(Hash)) ? args.shift.to_s : builder.base.human_attribute_name(attr_name)
         prev_attr, prev_order = builder.search_attributes['meta_sort'].to_s.split('.')
 
-        options = args.first.is_a?(Hash) ? args.shift : {}
+        options = args.first.is_a?(Hash) ? args.shift.dup : {}
         current_order = prev_attr == attr_name ? prev_order : nil
 
         if options[:default_order] == :desc
