@@ -37,6 +37,9 @@ module MetaSearch
         end
         options.delete(:default_order)
 
+        indicator_spacer = options[:indicator_spacer] || ' '
+        options.delete(:indicator_spacer)
+
         html_options = args.first.is_a?(Hash) ? args.shift : {}
         css = ['sort_link', current_order].compact.join(' ')
         html_options[:class] = [css, html_options[:class]].compact.join(' ')
@@ -45,7 +48,7 @@ module MetaSearch
             'meta_sort' => [attr_name, new_order].join('.')
           )
         )
-        link_to [ERB::Util.h(name), order_indicator_for(current_order)].compact.join(' ').html_safe,
+        link_to [ERB::Util.h(name), order_indicator_for(current_order)].compact.join(indicator_spacer)).html_safe,
                 url_for(options),
                 html_options
       end
