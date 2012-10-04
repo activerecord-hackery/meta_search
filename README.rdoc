@@ -260,6 +260,19 @@ To allow MetaSearch access to a model method, including a named scope, just use
 This will allow you to add a text field named :backwards_name to your search form, and
 it will behave as you might expect.
 
+Note: If you define your search method as class method, you should allow this method to
+receive arguments, otherwise you will get a 'wrong number of arguments exception', for example:
+
+  class class Company < ActiveRecord::Base
+    def self.some_class_method(*args)
+      # do smth.
+    end
+
+    search_methods :some_class_method
+  end
+
+
+
 In the case of the second scope, we have multiple parameters to pass in, of different
 types. We can pass the following to <tt>search_methods</tt>:
 
