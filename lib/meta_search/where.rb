@@ -215,7 +215,7 @@ module MetaSearch
         unless opts[:formatter].respond_to?(:call)
           raise ArgumentError, "Invalid formatter for #{opts[:name]}, should be a Proc or String."
         end
-        opts[:validator] ||= Proc.new {|param| !param.blank?}
+        opts[:validator] ||= validator_for_name(opts[:name])
         unless opts[:validator].respond_to?(:call)
           raise ArgumentError, "Invalid validator for #{opts[:name]}, should be a Proc."
         end
@@ -255,6 +255,15 @@ module MetaSearch
               !param.select {|p| where.validator.call(p)}.blank?}
             }]
           )
+        end
+      end
+
+      def validator_for_name(name)
+        case name.to_sym
+        when :in
+          Proc.new {|param| param.is_a?(Array) && param.reject(&:blank?).present?}
+        else
+          Proc.new {|param| !param.blank?}
         end
       end
     end

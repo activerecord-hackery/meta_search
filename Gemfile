@@ -11,4 +11,5 @@ gem 'sqlite3'
 
 group :development do
   gem "shoulda", "~> 2.11"
+  gem 'debugger'
 end
