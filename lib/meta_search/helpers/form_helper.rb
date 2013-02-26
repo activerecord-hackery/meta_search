@@ -1,7 +1,7 @@
 module MetaSearch
   module Helpers
     module FormHelper
-      def apply_form_for_options!(object_or_array, options)
+      def apply_form_for_options!(object_or_array, options, something)
         if object_or_array.is_a?(MetaSearch::Builder)
           builder = object_or_array
           options[:url] ||= polymorphic_path(object_or_array.base)
