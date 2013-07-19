@@ -30,7 +30,7 @@ module MetaSearch
     # for how it will expose this model and its associations to your controllers/views.
     def initialize(base_or_relation, opts = {})
       opts = opts.dup
-      @relation = base_or_relation.scoped
+      @relation = base_or_relation.all
       @base = @relation.klass
       @search_key = (opts.delete(:search_key) || 'search').to_s
       @options = opts  # Let's just hang on to other options for use in authorization blocks
@@ -51,13 +51,13 @@ module MetaSearch
 
     def get_attribute(name, parent = @join_dependency.join_base)
       attribute = nil
-      if get_column(name, parent.active_record)
+      if get_column(name, parent.base_klass)
         attribute = parent.table[name]
       elsif (segments = name.to_s.split(/_/)).size > 1
         remainder = []
         found_assoc = nil
         while remainder.unshift(segments.pop) && segments.size > 0 && !found_assoc do
-          if found_assoc = get_association(segments.join('_'), parent.active_record)
+          if found_assoc = get_association(segments.join('_'), parent.base_klass)
             if found_assoc.options[:polymorphic]
               unless delimiter = remainder.index('type')
                 raise PolymorphicAssociationMissingTypeError, "Polymorphic association specified without a type"
@@ -82,7 +82,7 @@ module MetaSearch
     # MetaSearch::Where
     def build(option_hash)
       opts = option_hash.dup || {}
-      @relation = @base.scoped
+      @relation = @base.all
       opts.stringify_keys!
       opts = collapse_multiparameter_options(opts)
       assign_attributes(opts)
