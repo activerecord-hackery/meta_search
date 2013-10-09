@@ -43,16 +43,20 @@ module MetaSearch
   ]
 end
 
-require 'active_record'
-require 'active_support'
-require 'action_view'
-require 'action_controller'
 require 'meta_search/searches/active_record'
 require 'meta_search/helpers'
 
 I18n.load_path += Dir[File.join(File.dirname(__FILE__), 'meta_search', 'locale', '*.yml')]
 
-ActiveRecord::Base.send(:include, MetaSearch::Searches::ActiveRecord)
-ActionView::Helpers::FormBuilder.send(:include, MetaSearch::Helpers::FormBuilder)
-ActionController::Base.helper(MetaSearch::Helpers::UrlHelper)
-ActionController::Base.helper(MetaSearch::Helpers::FormHelper)
+if defined?(::ActiveRecord)
+  ::ActiveRecord::Base.send(:include, MetaSearch::Searches::ActiveRecord)
+end
+
+if defined?(::ActionView)
+  ::ActionView::Helpers::FormBuilder.send(:include, MetaSearch::Helpers::FormBuilder)
+end
+
+if defined?(::ActionController)
+  ::ActionController::Base.helper(MetaSearch::Helpers::UrlHelper)
+  ::ActionController::Base.helper(MetaSearch::Helpers::FormHelper)
+end

@@ -5,6 +5,7 @@ require 'active_support/time'
 require 'active_record'
 require 'active_record/fixtures'
 require 'action_view'
+require 'action_controller'
 require 'meta_search'
 
 FIXTURES_PATH = File.join(File.dirname(__FILE__), 'fixtures')
