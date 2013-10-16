@@ -1,4 +1,4 @@
-source :rubygems
+source 'https://rubygems.org'
 
 # Don't do a "gemspec" here. Seriously. It jacks up Jeweler.
 
