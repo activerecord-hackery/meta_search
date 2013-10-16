@@ -9,4 +9,6 @@ gem "actionpack", "~> 3.1"
 
 group :development do
   gem "shoulda", "~> 2.11"
+  gem 'rake'
+  gem 'sqlite3'
 end
