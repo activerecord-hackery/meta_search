@@ -4,6 +4,8 @@ MetaSearch is extensible searching for your form_for enjoyment. It “wraps” o
 
 == NOTE
 
+MetaSearch is not Rails 4 compatible!
+
 The successor to MetaSearch is {Ransack}[http://github.com/ernie/ransack]. It's got features
 that MetaSearch doesn't, along with some API changes. I haven't had the time to dedicate to
 making it bulletproof yet, so I'm releasing a 1.1.x branch of MetaSearch to help with migrations
