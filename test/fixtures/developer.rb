@@ -6,6 +6,6 @@ class Developer < ActiveRecord::Base
   attr_searchable :name, :salary, :if => proc {|s| !s.options[:user] || s.options[:user] == 'privileged'}
   assoc_searchable :notes, :projects, :company, :if => proc {|s| !s.options[:user] || s.options[:user] == 'privileged'}
 
-  scope :sort_by_salary_and_name_asc, order('salary ASC, name ASC')
-  scope :sort_by_salary_and_name_desc, order('salary DESC, name DESC')
+  scope :sort_by_salary_and_name_asc, -> { order('salary ASC, name ASC') }
+  scope :sort_by_salary_and_name_desc, -> { order('salary DESC, name DESC') }
 end

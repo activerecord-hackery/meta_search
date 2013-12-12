@@ -30,7 +30,7 @@ In your controller:
 
   def index
     @search = Article.search(params[:search])
-    @articles = @search.all   # load all matching records
+    @articles = @search.to_a   # load all matching records
     # @articles = @search.relation # Retrieve the relation, to lazy-load in view
     # @articles = @search.paginate(:page => params[:page]) # Who doesn't love will_paginate?
   end
