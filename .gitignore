@@ -20,3 +20,7 @@ pkg
 
 ## PROJECT::SPECIFIC
 Gemfile.lock
+
+## RVM
+.ruby-gemset
+.ruby-version

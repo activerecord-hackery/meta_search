@@ -79,9 +79,10 @@ against:
 === Numbers, dates, and times
 
 * _greater_than_ (alias: _gt_) - Greater than.
-* _greater_than_or_equal_to_ (aliases: _gte_, _gteq_) - Greater than or equal to.
+* _gte_ (aliases: _greater_than_or_equal_to_, _gteq_) - Greater than or equal to.
 * _less_than_ (alias: _lt_) - Less than.
-* _less_than_or_equal_to_ (aliases: _lte_, _lteq_) - Less than or equal to.
+* _lte_ (aliases: _less_than_or_equal_to_, _lteq_) - Less than or equal to.
+* _between_ (aliases: _btw_) - Between.
 
 === Booleans
 
