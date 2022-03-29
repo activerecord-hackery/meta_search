@@ -1,3 +1,6 @@
+This project is archived
+
+
 = MetaSearch
 
 MetaSearch is extensible searching for your form_for enjoyment. It “wraps” one of your ActiveRecord models, providing methods that allow you to build up search conditions against that model, and has a few extra form helpers to simplify sorting and supplying multiple parameters to your condition methods as well.
