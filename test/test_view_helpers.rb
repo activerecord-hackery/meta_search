@@ -129,6 +129,12 @@ class TestViewHelpers < ActionView::TestCase
       assert @f.checks(:id_in, [['One', 1], ['Two', 2], ['Three', 3]]).all?{|c| c.is_a?(MetaSearch::Check)}
     end
 
+    should "provide direct access to the check box text and value" do
+      check = @f.checks(:id_in, [['One', 1]]).first
+      assert_equal 'One', check.text
+      assert_equal 1, check.value
+    end
+
     should "generate the expected HTML with a block" do
       expected = <<-EXPECTED
 <p>
@@ -153,6 +159,28 @@ class TestViewHelpers < ActionView::TestCase
 </p>
 <% end -%>
       ERB
+    end
+
+    context "where the values are strings" do
+      should "generate matching labels and inputs" do
+        expected = <<-EXPECTED
+<p>
+  <label for="search_name_in_mission_data">Mission Data</label>
+  <input id="search_name_in_mission_data" name="search[name_in][]"
+       type="checkbox" value="Mission Data" />
+</p>
+        EXPECTED
+
+        assert_dom_equal expected,
+          render(:to => :string, :inline => <<-ERB)
+<%= @f.checks(:name_in, [['Mission Data', 'Mission Data']]) do |c| -%>
+<p>
+  <%= c.label %>
+  <%= c.box %>
+</p>
+<% end %>
+        ERB
+      end
     end
   end
 
