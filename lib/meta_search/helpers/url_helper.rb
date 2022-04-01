@@ -45,7 +45,7 @@ module MetaSearch
             'meta_sort' => [attr_name, new_order].join('.')
           )
         )
-        link_to [ERB::Util.h(name), order_indicator_for(current_order)].compact.join(' ').html_safe,
+        link_to [ERB::Util.h(name), order_indicator_for(current_order)].compact.join('&nbsp').html_safe,
                 url_for(options),
                 html_options
       end
