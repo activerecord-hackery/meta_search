@@ -275,6 +275,8 @@ module MetaSearch
           'stashed_join'
         when Arel::Nodes::Join
           'join_node'
+        when Squeel::Nodes::Join
+          'join_node'
         else
           raise 'unknown class: %s' % join.class.name
         end
@@ -296,7 +298,7 @@ module MetaSearch
       )
 
       join_nodes.each do |join|
-        join_dependency.alias_tracker.aliased_name_for(join.left.name.downcase)
+        join_dependency.alias_tracker.aliased_name_for(join.left.name.downcase.to_s)
       end
 
       join_dependency.graft(*stashed_association_joins)
