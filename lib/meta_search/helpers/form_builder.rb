@@ -114,7 +114,7 @@ module MetaSearch
       #
       # Example:
       #
-      #   <% f.collection_checks :head_sizes_in, HeadSize.all,
+      #   <% f.collection_checks :head_sizes_in, HeadSize.to_a,
       #       :id, :name, :class => 'headcheck' do |check| %>
       #     <%= check.box %> <%= check.label %>
       #   <% end %>

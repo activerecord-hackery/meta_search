@@ -6,6 +6,12 @@ class TestViewHelpers < ActionView::TestCase
   tests MetaSearch::Helpers::FormHelper
   include MetaSearch::Helpers::UrlHelper
 
+  include Shoulda::InstanceMethods
+  extend Shoulda::ClassMethods
+  include Shoulda::Assertions
+  extend Shoulda::Macros
+  include Shoulda::Helpers
+
   def self.router
     @router ||= begin
       router = ActionDispatch::Routing::RouteSet.new
@@ -14,7 +20,7 @@ class TestViewHelpers < ActionView::TestCase
         resources :companies
         resources :projects
         resources :notes
-        match ':controller(/:action(/:id(.:format)))'
+        get ':controller(/:action(/:id(.:format)))'
       end
       router
     end
@@ -50,7 +56,7 @@ class TestViewHelpers < ActionView::TestCase
     end
 
     should "use the default localization for predicates" do
-      assert_match /Name isn't null/, @f1.label(:name_is_not_null)
+      assert_match /Name isn\&\#39\;t null/, @f1.label(:name_is_not_null)
     end
 
     context "in the Flanders locale" do
@@ -92,7 +98,7 @@ class TestViewHelpers < ActionView::TestCase
       end
       assert_match /<option selected="selected" value="2">February<\/option>/, html
       assert_dom_equal '<input id="search_name_contains" name="search[name_contains]" ' +
-                       'size="30" type="text" value="bacon" />',
+                       'type="text" value="bacon" />',
                         @f.text_field(:name_contains)
     end
   end
@@ -273,7 +279,7 @@ class TestViewHelpers < ActionView::TestCase
 
     should "sort results as expected" do
       assert_equal Developer.order('salary ASC, name ASC'),
-                   @s.all
+                   @s.relation.to_a
     end
   end
 
@@ -297,8 +303,8 @@ class TestViewHelpers < ActionView::TestCase
     end
 
     should "return expected results" do
-      assert_equal Developer.order('name ASC, salary ASC').all,
-                   @s.all
+      assert_equal Developer.order('name ASC, salary ASC').to_a,
+                   @s.relation.to_a
     end
   end
 
@@ -432,12 +438,12 @@ class TestViewHelpers < ActionView::TestCase
       end
     end
   end
-  
+
   context "Any search" do
     setup do
       @s = Company.search(:name_contains => 'foo')
     end
-    
+
     should "not modify passed-in parameters" do
       params = { :controller => 'companies' }
       sort_link(@s, :name, params)
