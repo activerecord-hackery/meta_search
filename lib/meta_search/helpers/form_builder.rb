@@ -42,17 +42,20 @@ module MetaSearch
         defaults = has_multiparameter_defaults?(args) ? args.pop : {}
         raise ArgumentError, "No multiparameter fields specified" if args.blank?
         html = ''.html_safe
+        fields_count = 0
         args.each_with_index do |field, index|
           type = field.delete(:field_type) || raise(ArgumentError, "No :field_type specified.")
           cast = field.delete(:type_cast) || ''
           opts = defaults.merge(field)
+          field_name = opts[:name] || method.to_s + "(#{fields_count + 1}#{cast})"
           html.safe_concat(
             @template.send(
               type.to_s,
               @object_name,
-              (method.to_s + "(#{index + 1}#{cast})"),
+              field_name,
               objectify_options(opts))
             )
+            fields_count += 1 unless type == :label
         end
         html
       end
