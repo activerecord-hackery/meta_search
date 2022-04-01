@@ -9,11 +9,12 @@ module MetaSearch
     private
 
     def preferred_method_name(method_id)
-      method_name = method_id.to_s
+      method_name = method_id.to_s.dup # use dup otherwise sub! will change the value of method_id
       where = Where.new(method_name) rescue nil
       return nil unless where
       where.aliases.each do |a|
-        break if method_name.sub!(/#{a}(=?)$/, "#{where.name}\\1")
+        # make sure method_name like "phone" will not convert to "phodoes_not_equal"
+        break if method_name.sub!(/_#{a}(=?)$/, "_#{where.name}\\1")
       end
       method_name
     end

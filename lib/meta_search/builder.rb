@@ -147,6 +147,7 @@ module MetaSearch
       where = Where.new(method_id) rescue nil
       return nil unless method_name && where
       match = method_name.match("^(.*)_(#{where.name})=?$")
+      return nil unless match
       attribute, predicate = match.captures
       attributes = attribute.split(/_or_/)
       if attributes.all? {|a| where.types.include?(column_type(a))}
